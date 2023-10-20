@@ -1,5 +1,5 @@
 /node_modules
-/public/hot
+/config/database.php
 /public/Archivos
 /public/storage
 /storage/*.key
