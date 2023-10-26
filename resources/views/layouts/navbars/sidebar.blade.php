@@ -214,6 +214,15 @@
                                         </a>
                                     </li>
                                     @endcan
+                                    @can('reportes_colsalud_gestion_ocupacion')
+                                    <li class="nav-item{{ $activePage == 'ReportesIndexColsaludGestionOcupacion' ? ' active' : '' }}">
+                                        <a class="nav-link" href="{{ route('gestionOcupacion.index') }}">
+                                            <i class="material-icons">list</i>
+                                            <span class="sidebar-normal">
+                                                {{ __('GESTION DE OCUPACION') }} </span>
+                                        </a>
+                                    </li>
+                                    @endcan
                                 </ul>
                             </div>
                         </li>

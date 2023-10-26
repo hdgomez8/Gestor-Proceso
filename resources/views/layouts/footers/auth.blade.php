@@ -24,11 +24,11 @@
         </li> --}}
             </ul>
         </nav>
-        <div class="copyright float-right">
+        <div class="copyright float-right clase-clinica">
             &copy;
             <script>
                 document.write(new Date().getFullYear())
-            </script>, Departamento De TI <i class="material-icons">computer</i> Creciendo para SERVIR a
+            </script>, Departamento TI <i class="material-icons">computer</i> Creciendo para SERVIR a
             nuestra
             GENTE
         </div>

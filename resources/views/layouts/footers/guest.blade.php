@@ -28,7 +28,7 @@
             &copy;
             <script>
                 document.write(new Date().getFullYear())
-            </script>, Departamento De TI <i class="material-icons">computer</i>
+            </script>, Departamento TI <i class="material-icons">computer</i>
         </div>
     </div>
 </footer>
