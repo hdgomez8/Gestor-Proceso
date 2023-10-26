@@ -63,6 +63,9 @@ Route::group(['middleware' => 'auth'], function () {
     // Reporte Coosalud
     Route::get('/reportes/colsalud/coosalud/index', [App\Http\Controllers\ReportesController::class, 'index'])->name('coosalud.index');
 
+    // Reporte Gestion De Ocupacion
+    Route::get('/reportes/colsalud/gestion_ocupacion/index', [App\Http\Controllers\ReportesController::class, 'indexGestionOcupacion'])->name('gestionOcupacion.index');
+
     // Reporte Interconsulta
     Route::get('/reportes/colsalud/interconsultas/index', [App\Http\Controllers\ReportesController::class, 'indexInterconsultas'])->name('interconsultas.index');
     Route::post('/reportes/colsalud/interconsultas/index', [App\Http\Controllers\ReportesController::class, 'buscarInterconsultas'])->name('interconsultas.buscar');
