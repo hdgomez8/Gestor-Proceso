@@ -186,59 +186,34 @@ class ReportesController extends Controller
     public function indexGestionOcupacion()
     {
         $nombreUsuario = Auth::user()->username;
-        $pabellon = 0;
-        if ($nombreUsuario === "5TO_PISO") {
-            $pabellon = 21;
-        }elseif ($nombreUsuario === "4TO_PISO"){
-            $pabellon = 9;
-        }elseif ($nombreUsuario === "3ER_PISO_PAB_I"){
-            $pabellon = 8;
-        }elseif ($nombreUsuario === "3ER_PISO_PAB_II"){
-            $pabellon = 17;
-        }elseif ($nombreUsuario === "3ER_PISO_HEMATO"){
-            $pabellon = 46;
-        }
+        // Asignación de pabellon usando un diccionario
+        $pabellones = [
+            "5TO_PISO" => ["pabellon" => 21, "camas" => 9],
+            "4TO_PISO" => ["pabellon" => 9, "camas" => 8],
+            "3ER_PISO_PAB_I" => ["pabellon" => 8, "camas" => 11],
+            "3ER_PISO_PAB_II" => ["pabellon" => 17, "camas" => 11],
+            "3ER_PISO_HEMATO" => ["pabellon" => 46, "camas" => 11],
+        ];
 
-        $sql_Gestion1 = "SELECT TMPFAC.TFCCODPAB COD_PABELLON, MAEPAB.MPNOMP NOMBRE_PABELLON, TMPFAC.TFCCODCAM AS CAMA, CAPBAS.MPNOMC as nombre_paciente,
-        STUFF((SELECT DISTINCT ', ' + RTRIM(MENomE)
-               FROM INTERCN
-               INNER JOIN HCCOM1 h ON h.HISCKEY = INTERCN.HISCKEY AND h.HISTipDoc = INTERCN.HISTipDoc AND INTERCN.HISCSEC = H.HISCSEC
-               INNER JOIN MAEESP ON MAEESP.MECodE = INTERCN.MECodE
-               WHERE h.HISCKEY = CAPBAS.MPCEDU AND INTERCN.IntCtvIn = TMPFAC.TMCTVING AND IntEst = 'O'
-               FOR XML PATH('')), 1, 1, '') AS INTERCONSULTAS,
-        STUFF((SELECT DISTINCT ', ' + COALESCE(CAST(RTRIM(MA.TpPrCd) AS VARCHAR(50))+'','') + SUBSTRING(RTRIM(PrNomb), 1, 25)
-               FROM HCCOM51
-               INNER JOIN HCCOM1 h ON h.HISCKEY = HCCOM51.HISCKEY AND h.HISTipDoc = HCCOM51.HISTipDoc AND HCCOM51.HISCSEC = H.HISCSEC
-               INNER JOIN MAEPRO MA ON MA.PRCODI = HCCOM51.HCPrcCod
-               WHERE h.HISCKEY = CAPBAS.MPCEDU AND HCCOM51.HCtvIn51 = TMPFAC.TMCTVING AND HCPRCEST = 'O'
-               FOR XML PATH('')), 1, 1, '') AS PROCEDIMIENTOS
-        FROM CAPBAS
-        INNER JOIN TMPFAC ON CAPBAS.MPCEDU = TMPFAC.TFCEDU AND CAPBAS.MPTDOC = TMPFAC.TFTDOC
-        INNER JOIN MAEDMB ON MAEDMB.MDCodD = CAPBAS.MDCodD
-        INNER JOIN MAEDMB1 ON MAEDMB1.MDCodM = CAPBAS.MDCodM AND MAEDMB1.MDCodD = CAPBAS.MDCodD
-        INNER JOIN MAEPAB ON TMPFAC.TFCCODPAB = MAEPAB.MPCODP
-        INNER JOIN MAEEMP ON TMPFAC.TFMENI = MAEEMP.MENNIT
-        INNER JOIN MAEDIA ON TMPFAC.TFDI1I = MAEDIA.DMCODI
-        INNER JOIN INGRESOS ON INGRESOS.MPCEDU = TMPFAC.TFCEDU AND INGRESOS.MPTDOC = TMPFAC.TFTDOC AND INGRESOS.INGCSC = TMPFAC.TMCTVING
-        WHERE (TMPFAC.TFCCODCAM <> '') AND (TMPFAC.SCCCOD = 01) AND (TMPFAC.SCCEMP = 01) AND TMPFAC.TFCCODPAB = $pabellon
-        ORDER BY TMPFAC.TFCCODCAM
-        OFFSET 0 ROWS
-        FETCH NEXT 11 ROWS ONLY;
-        ";
+        $pabellon = array_key_exists($nombreUsuario, $pabellones) ? $pabellones[$nombreUsuario]["pabellon"] : null;
+        $camas = array_key_exists($nombreUsuario, $pabellones) ? $pabellones[$nombreUsuario]["camas"] : null;
 
-        $sql_Gestion2 = "SELECT TMPFAC.TFCCODPAB COD_PABELLON, MAEPAB.MPNOMP NOMBRE_PABELLON, TMPFAC.TFCCODCAM AS CAMA, CAPBAS.MPNOMC as nombre_paciente,
-        STUFF((SELECT DISTINCT ', ' + RTRIM(MENomE)
-               FROM INTERCN
-               INNER JOIN HCCOM1 h ON h.HISCKEY = INTERCN.HISCKEY AND h.HISTipDoc = INTERCN.HISTipDoc AND INTERCN.HISCSEC = H.HISCSEC
-               INNER JOIN MAEESP ON MAEESP.MECodE = INTERCN.MECodE
-               WHERE h.HISCKEY = CAPBAS.MPCEDU AND INTERCN.IntCtvIn = TMPFAC.TMCTVING AND IntEst = 'O'
-               FOR XML PATH('')), 1, 1, '') AS INTERCONSULTAS,
-        STUFF((SELECT DISTINCT ', ' + COALESCE(CAST(RTRIM(MA.TpPrCd) AS VARCHAR(50))+'','') + SUBSTRING(RTRIM(PrNomb), 1, 25)
-               FROM HCCOM51
-               INNER JOIN HCCOM1 h ON h.HISCKEY = HCCOM51.HISCKEY AND h.HISTipDoc = HCCOM51.HISTipDoc AND HCCOM51.HISCSEC = H.HISCSEC
-               INNER JOIN MAEPRO MA ON MA.PRCODI = HCCOM51.HCPrcCod
-               WHERE h.HISCKEY = CAPBAS.MPCEDU AND HCCOM51.HCtvIn51 = TMPFAC.TMCTVING AND HCPRCEST = 'O'
-               FOR XML PATH('')), 1, 1, '') AS PROCEDIMIENTOS
+        // Función para generar consultas SQL
+        function generateSQL($pabellon, $offset,$camas)
+        {
+            return "SELECT TMPFAC.TFCCODPAB COD_PABELLON, MAEPAB.MPNOMP NOMBRE_PABELLON, TMPFAC.TFCCODCAM AS CAMA, CAPBAS.MPNOMC as nombre_paciente,
+            STUFF((SELECT DISTINCT ', ' + RTRIM(MENomE)
+                   FROM INTERCN
+                   INNER JOIN HCCOM1 h ON h.HISCKEY = INTERCN.HISCKEY AND h.HISTipDoc = INTERCN.HISTipDoc AND INTERCN.HISCSEC = H.HISCSEC
+                   INNER JOIN MAEESP ON MAEESP.MECodE = INTERCN.MECodE
+                   WHERE h.HISCKEY = CAPBAS.MPCEDU AND INTERCN.IntCtvIn = TMPFAC.TMCTVING AND IntEst = 'O'
+                   FOR XML PATH('')), 1, 1, '') AS INTERCONSULTAS,
+            STUFF((SELECT DISTINCT ', ' + COALESCE(CAST(RTRIM(MA.TpPrCd) AS VARCHAR(50))+'','') + SUBSTRING(RTRIM(PrNomb), 1, 25)
+                   FROM HCCOM51
+                   INNER JOIN HCCOM1 h ON h.HISCKEY = HCCOM51.HISCKEY AND h.HISTipDoc = HCCOM51.HISTipDoc AND HCCOM51.HISCSEC = H.HISCSEC
+                   INNER JOIN MAEPRO MA ON MA.PRCODI = HCCOM51.HCPrcCod
+                   WHERE h.HISCKEY = CAPBAS.MPCEDU AND HCCOM51.HCtvIn51 = TMPFAC.TMCTVING AND HCPRCEST = 'O'
+                   FOR XML PATH('')), 1, 1, '') AS PROCEDIMIENTOS
             FROM CAPBAS
             INNER JOIN TMPFAC ON CAPBAS.MPCEDU = TMPFAC.TFCEDU AND CAPBAS.MPTDOC = TMPFAC.TFTDOC
             INNER JOIN MAEDMB ON MAEDMB.MDCodD = CAPBAS.MDCodD
@@ -249,68 +224,42 @@ class ReportesController extends Controller
             INNER JOIN INGRESOS ON INGRESOS.MPCEDU = TMPFAC.TFCEDU AND INGRESOS.MPTDOC = TMPFAC.TFTDOC AND INGRESOS.INGCSC = TMPFAC.TMCTVING
             WHERE (TMPFAC.TFCCODCAM <> '') AND (TMPFAC.SCCCOD = 01) AND (TMPFAC.SCCEMP = 01) AND TMPFAC.TFCCODPAB = $pabellon
             ORDER BY TMPFAC.TFCCODCAM
-            OFFSET 11 ROWS
-            FETCH NEXT 11 ROWS ONLY;";
+            OFFSET $offset ROWS
+            FETCH NEXT $camas ROWS ONLY;";
+        }
 
-        $sql_Gestion3 = "SELECT TMPFAC.TFCCODPAB COD_PABELLON, MAEPAB.MPNOMP NOMBRE_PABELLON, TMPFAC.TFCCODCAM AS CAMA, CAPBAS.MPNOMC as nombre_paciente,
-        STUFF((SELECT DISTINCT ', ' + RTRIM(MENomE)
-       FROM INTERCN
-       INNER JOIN HCCOM1 h ON h.HISCKEY = INTERCN.HISCKEY AND h.HISTipDoc = INTERCN.HISTipDoc AND INTERCN.HISCSEC = H.HISCSEC
-       INNER JOIN MAEESP ON MAEESP.MECodE = INTERCN.MECodE
-       WHERE h.HISCKEY = CAPBAS.MPCEDU AND INTERCN.IntCtvIn = TMPFAC.TMCTVING AND IntEst = 'O'
-       FOR XML PATH('')), 1, 1, '') AS INTERCONSULTAS,
-        STUFF((SELECT DISTINCT ', ' + COALESCE(CAST(RTRIM(MA.TpPrCd) AS VARCHAR(50))+'','') + SUBSTRING(RTRIM(PrNomb), 1, 25)
-       FROM HCCOM51
-       INNER JOIN HCCOM1 h ON h.HISCKEY = HCCOM51.HISCKEY AND h.HISTipDoc = HCCOM51.HISTipDoc AND HCCOM51.HISCSEC = H.HISCSEC
-       INNER JOIN MAEPRO MA ON MA.PRCODI = HCCOM51.HCPrcCod
-       WHERE h.HISCKEY = CAPBAS.MPCEDU AND HCCOM51.HCtvIn51 = TMPFAC.TMCTVING AND HCPRCEST = 'O'
-       FOR XML PATH('')), 1, 1, '') AS PROCEDIMIENTOS
-        FROM CAPBAS
-        INNER JOIN TMPFAC ON CAPBAS.MPCEDU = TMPFAC.TFCEDU AND CAPBAS.MPTDOC = TMPFAC.TFTDOC
-        INNER JOIN MAEDMB ON MAEDMB.MDCodD = CAPBAS.MDCodD
-        INNER JOIN MAEDMB1 ON MAEDMB1.MDCodM = CAPBAS.MDCodM AND MAEDMB1.MDCodD = CAPBAS.MDCodD
-        INNER JOIN MAEPAB ON TMPFAC.TFCCODPAB = MAEPAB.MPCODP
-        INNER JOIN MAEEMP ON TMPFAC.TFMENI = MAEEMP.MENNIT
-        INNER JOIN MAEDIA ON TMPFAC.TFDI1I = MAEDIA.DMCODI
-        INNER JOIN INGRESOS ON INGRESOS.MPCEDU = TMPFAC.TFCEDU AND INGRESOS.MPTDOC = TMPFAC.TFTDOC AND INGRESOS.INGCSC = TMPFAC.TMCTVING
-        WHERE (TMPFAC.TFCCODCAM <> '') AND (TMPFAC.SCCCOD = 01) AND (TMPFAC.SCCEMP = 01) AND TMPFAC.TFCCODPAB = $pabellon
-        ORDER BY TMPFAC.TFCCODCAM
-        OFFSET 22 ROWS
-        FETCH NEXT 11 ROWS ONLY;";
+        // Generar las consultas SQL usando un bucle
+        $sqlQueries = [];
+        $offset = 0;
+        for ($i = 1; $i <= 6; $i++) {
+            $sqlQueries[] = generateSQL($pabellon, $offset,$camas);
+            $offset += $camas;
+        }
 
-        $sql_Gestion4 = "SELECT TMPFAC.TFCCODPAB COD_PABELLON, MAEPAB.MPNOMP NOMBRE_PABELLON, TMPFAC.TFCCODCAM AS CAMA, CAPBAS.MPNOMC as nombre_paciente,
-        STUFF((SELECT DISTINCT ', ' + RTRIM(MENomE)
-       FROM INTERCN
-       INNER JOIN HCCOM1 h ON h.HISCKEY = INTERCN.HISCKEY AND h.HISTipDoc = INTERCN.HISTipDoc AND INTERCN.HISCSEC = H.HISCSEC
-       INNER JOIN MAEESP ON MAEESP.MECodE = INTERCN.MECodE
-       WHERE h.HISCKEY = CAPBAS.MPCEDU AND INTERCN.IntCtvIn = TMPFAC.TMCTVING AND IntEst = 'O'
-       FOR XML PATH('')), 1, 1, '') AS INTERCONSULTAS,
-        STUFF((SELECT DISTINCT ', ' + COALESCE(CAST(RTRIM(MA.TpPrCd) AS VARCHAR(50))+'','') + SUBSTRING(RTRIM(PrNomb), 1, 25)
-       FROM HCCOM51
-       INNER JOIN HCCOM1 h ON h.HISCKEY = HCCOM51.HISCKEY AND h.HISTipDoc = HCCOM51.HISTipDoc AND HCCOM51.HISCSEC = H.HISCSEC
-       INNER JOIN MAEPRO MA ON MA.PRCODI = HCCOM51.HCPrcCod
-       WHERE h.HISCKEY = CAPBAS.MPCEDU AND HCCOM51.HCtvIn51 = TMPFAC.TMCTVING AND HCPRCEST = 'O'
-       FOR XML PATH('')), 1, 1, '') AS PROCEDIMIENTOS
-        FROM CAPBAS
-        INNER JOIN TMPFAC ON CAPBAS.MPCEDU = TMPFAC.TFCEDU AND CAPBAS.MPTDOC = TMPFAC.TFTDOC
-        INNER JOIN MAEDMB ON MAEDMB.MDCodD = CAPBAS.MDCodD
-        INNER JOIN MAEDMB1 ON MAEDMB1.MDCodM = CAPBAS.MDCodM AND MAEDMB1.MDCodD = CAPBAS.MDCodD
-        INNER JOIN MAEPAB ON TMPFAC.TFCCODPAB = MAEPAB.MPCODP
-        INNER JOIN MAEEMP ON TMPFAC.TFMENI = MAEEMP.MENNIT
-        INNER JOIN MAEDIA ON TMPFAC.TFDI1I = MAEDIA.DMCODI
-        INNER JOIN INGRESOS ON INGRESOS.MPCEDU = TMPFAC.TFCEDU AND INGRESOS.MPTDOC = TMPFAC.TFTDOC AND INGRESOS.INGCSC = TMPFAC.TMCTVING
-        WHERE (TMPFAC.TFCCODCAM <> '') AND (TMPFAC.SCCCOD = 01) AND (TMPFAC.SCCEMP = 01) AND TMPFAC.TFCCODPAB = $pabellon
-        ORDER BY TMPFAC.TFCCODCAM
-        OFFSET 33 ROWS
-    FETCH NEXT 11 ROWS ONLY;";
+        // Ejecutar las consultas SQL
+        $gestiones = [];
+        foreach ($sqlQueries as $sqlQuery) {
+            $gestiones[] = DB::connection('sqlsrv2')->select($sqlQuery);
+        }
 
-        $gestiones1 = DB::connection('sqlsrv2')->select($sql_Gestion1);
-        $gestiones2 = DB::connection('sqlsrv2')->select($sql_Gestion2);
-        $gestiones3 = DB::connection('sqlsrv2')->select($sql_Gestion3);
-        $gestiones4 = DB::connection('sqlsrv2')->select($sql_Gestion4);
-        // dd($interconsultas[20]->FECHA_RESPUESTA);
+// Inicializamos un arreglo que contendrá las gestiones
+$gestionesArray = [
+    'gestiones1' => $gestiones[0] ?? [],
+    'gestiones2' => $gestiones[1] ?? [],
+    'gestiones3' => $gestiones[2] ?? [],
+    'gestiones4' => $gestiones[3] ?? [],
+    'nombreUsuario' => $nombreUsuario,
+];
 
-        return view('reportes.colsalud.gestion_ocupacion.index', compact('gestiones1', 'gestiones2', 'gestiones3', 'gestiones4', 'nombreUsuario'));
+// Comprobamos si el nombre de usuario cumple con ciertas condiciones
+if ($nombreUsuario === "5TO_PISO" || $nombreUsuario === "4TO_PISO") {
+    // Agregamos las gestiones 5 y 6 si se cumple la condición
+    $gestionesArray['gestiones5'] = $gestiones[4] ?? [];
+    $gestionesArray['gestiones6'] = $gestiones[5] ?? [];
+}
+
+// Pasamos el arreglo final a la vista
+return view('reportes.colsalud.gestion_ocupacion.index', $gestionesArray);
     }
 
     public function uciEgresos()

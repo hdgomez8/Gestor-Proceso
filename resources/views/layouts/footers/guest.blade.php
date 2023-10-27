@@ -1,4 +1,4 @@
-<footer class="footer">
+<footer class="footer" id="myFooter">
     <div class="container">
         <nav class="float-left">
             <ul>

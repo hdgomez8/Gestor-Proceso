@@ -56,8 +56,7 @@
         display: inline-block;
         /* Aplica un radio del 50% para que sea ovalado */
         /* Ajusta el espacio entre el texto y el borde */
-        color: #169da6;
-        font-weight: bold;
+        color: #373737;
     }
 
     table.dataTable>thead>tr>th:not(.sorting_disabled),
@@ -80,7 +79,9 @@
     #interconsultas-table td,
     #interconsultas-table2 td,
     #interconsultas-table3 td,
-    #interconsultas-table4 td {
+    #interconsultas-table4 td,
+    #interconsultas-table5 td,
+    #interconsultas-table6 td {
         font-size: 10px;
         /* Ajusta el tamaño de fuente según tus preferencias */
     }
@@ -89,7 +90,9 @@
     #interconsultas-table th,
     #interconsultas-table2 th,
     #interconsultas-table3 th,
-    #interconsultas-table4 th {
+    #interconsultas-table4 th,
+    #interconsultas-table5 th,
+    #interconsultas-table6 th {
         font-size: 12px;
         /* Ajusta el tamaño de fuente según tus preferencias */
     }
@@ -98,7 +101,7 @@
 <input type="hidden" id="nombreUsuario" value="{{ Auth::user()->username }}">
 
 
-<div class="content" id="vista1">
+<div class="content vista" id="vista1">
     <div class="row justify-content-center align-items-center">
         <div class="col-md-2">
             <p class="clase-rosado">ONCOLOGÍA</p>
@@ -174,7 +177,7 @@
     </div>
 </div>
 
-<div class="content" id="vista2">
+<div class="content vista" id="vista2">
     <div class="row justify-content-center align-items-center">
         <div class="col-md-2">
             <p class="clase-rosado">ONCOLOGÍA</p>
@@ -248,9 +251,175 @@
         </div>
     </div>
 </div>
+
+<div class="content vista" id="vista3">
+    <div class="row justify-content-center align-items-center">
+        <div class="col-md-2">
+            <p class="clase-rosado">ONCOLOGÍA</p>
+        </div>
+        <div class="col-md-2">
+            <p class="clase-rojo">HEMODIÁLISIS</p>
+        </div>
+        <div class="col-md-2">
+            <p class="clase-azul">QUIRÚRGICO</p>
+        </div>
+        <div class="col-md-3">
+            <p class="clase-morado">QUIMIOTERAPIA Y RADIOTERAPIA</p>
+        </div>
+        <div class="col-md-2">
+            <p class="clase-clinica">OTROS</p>
+        </div>
+    </div>
+    <div class="row" id="cuarto_y_quinto">
+        <div class="col-md-6">
+            <div class="card" style="margin: 0;">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="interconsultas-table5" class="table display compact">
+                            <thead class="text-primary">
+                                <th>#C</th>
+                                <th>Nombre Paciente</th>
+                                <th>Interconsultas</th>
+                                <th>Ordenamientos</th>
+                            </thead>
+                            <tbody>
+                                @if ($nombreUsuario === '5TO_PISO' || $nombreUsuario === '4TO_PISO')
+                                @foreach ($gestiones5 as $gestion)
+                                <tr @if (empty($gestion->INTERCONSULTAS) && empty($gestion->PROCEDIMIENTOS)) class="fila-roja" @endif>
+                                    <td>{{ $gestion->CAMA }}</td>
+                                    <td class="clase-clinica">{{ $gestion->nombre_paciente }}</td>
+                                    <td data-interconsultas="{{ $gestion->INTERCONSULTAS }}">{{ $gestion->INTERCONSULTAS }}</td>
+                                    <td data-procedimientos="{{ $gestion->PROCEDIMIENTOS }}">{{ $gestion->PROCEDIMIENTOS }}</td>
+                                </tr>
+                                @endforeach
+                                @endif
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card" style="margin: 0;">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="interconsultas-table6" class="table display compact">
+                            <thead class="text-primary">
+                                <th>#C</th>
+                                <th>Nombre Paciente</th>
+                                <th>Interconsultas</th>
+                                <th>Ordenamientos</th>
+                            </thead>
+                            <tbody>
+                                @if ($nombreUsuario === '5TO_PISO' || $nombreUsuario === '4TO_PISO')
+                                @foreach ($gestiones6 as $gestion)
+                                <tr @if (empty($gestion->INTERCONSULTAS) && empty($gestion->PROCEDIMIENTOS)) class="fila-roja" @endif>
+                                    <td>{{ $gestion->CAMA }}</td>
+                                    <td class="clase-clinica">{{ $gestion->nombre_paciente }}</td>
+                                    <td data-interconsultas="{{ $gestion->INTERCONSULTAS }}">{{ $gestion->INTERCONSULTAS }}</td>
+                                    <td data-procedimientos="{{ $gestion->PROCEDIMIENTOS }}">{{ $gestion->PROCEDIMIENTOS }}</td>
+                                </tr>
+                                @endforeach
+                                @endif
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
 @endsection
 
 @section('js')
+<script>
+    // Obtén las referencias a tus vistas por sus IDs
+    var vista1 = document.getElementById("vista1");
+    var vista2 = document.getElementById("vista2");
+    var vista3 = document.getElementById("vista3");
+
+    // Un arreglo con las vistas para facilitar la alternancia
+    var vistas = document.querySelectorAll(".vista");
+    var currentIndex = 0;
+
+    document.addEventListener("keydown", function(event) {
+        if (event.key === "ArrowLeft") {
+            currentIndex = (currentIndex - 1 + vistas.length) % vistas.length;
+            mostrarVistaActual();
+        } else if (event.key === "ArrowRight") {
+            currentIndex = (currentIndex + 1) % vistas.length;
+            mostrarVistaActual();
+        }
+    });
+
+    // Variable para controlar si el cambio de vista es manual o automático
+    var cambioManual = false;
+
+    // Función para mostrar la vista actual y ocultar la otra
+    function mostrarVistaActual() {
+        vistas.forEach(function(vista, index) {
+            if (index === currentIndex) {
+                vista.style.display = "block";
+            } else {
+                vista.style.display = "none";
+            }
+        });
+
+    }
+
+    // Mostrar la primera vista al cargar la página
+    mostrarVistaActual();
+
+    // Accede al campo de entrada oculto por su id
+    var nombreUsuario = document.getElementById("nombreUsuario").value;
+
+    // Ahora, la variable nombreUsuario contiene el valor del nombre de usuario en JavaScript
+
+    // Accede al elemento con el id "hemato"
+    var hematoElement = document.getElementById("hemato");
+    var hemato2Element = document.getElementById("hemato2");
+    var cuartoyquinto = document.getElementById("cuarto_y_quinto");
+
+    if (nombreUsuario === '3ER_PISO_PAB_II') {
+        cuartoyquinto.style.display = "none";
+    } else if (nombreUsuario === '3ER_PISO_PAB_I') {
+        cuartoyquinto.style.display = "none";
+        // Cambiar automáticamente la vista cada 30 segundos
+        setInterval(function() {
+            if (!cambioManual) {
+                currentIndex = (currentIndex + 1) % vistas.length;
+                mostrarVistaActual();
+            }
+            cambioManual = false; // Restablecer a false para el cambio automático
+        }, 30000);
+    } else if (nombreUsuario === '3ER_PISO_HEMATO') {
+        hematoElement.classList.remove("col-md-6");
+        hematoElement.classList.add("col-md-12");
+        hemato2Element.style.display = "none";
+        cuartoyquinto.style.display = "none";
+    } else if (nombreUsuario === '4TO_PISO') {
+        // Cambiar automáticamente la vista cada 30 segundos
+        setInterval(function() {
+            if (!cambioManual) {
+                currentIndex = (currentIndex + 1) % vistas.length;
+                mostrarVistaActual();
+            }
+            cambioManual = false; // Restablecer a false para el cambio automático
+        }, 30000);
+    } else if (nombreUsuario === '5TO_PISO') {
+        // Cambiar automáticamente la vista cada 30 segundos
+        setInterval(function() {
+            if (!cambioManual) {
+                currentIndex = (currentIndex + 1) % vistas.length;
+                mostrarVistaActual();
+            }
+            cambioManual = false; // Restablecer a false para el cambio automático
+        }, 30000);
+    }
+</script>
+
 <script>
     $(document).ready(function() {
         $('#interconsultas-table').DataTable({
@@ -258,12 +427,12 @@
                 // Aplicar estilo a la primera columna (índice 0)
                 $('td:eq(0)', row).css({
                     'font-weight': 'bold', // Establecer negrita para la primera columna
-                    'color': '#169da6'
+                    'color': '#373737'
                 });
                 if ((data[2] == "" || data[2] == " ") && data[3] == "") {
                     $('td', row).css({
                         'background-color': '#f6e683',
-                        'color': '#169da6',
+                        'color': '#373737',
                         'border-style': '',
                         'border-color': '#aaa196'
                     })
@@ -289,12 +458,12 @@
                 // Aplicar estilo a la primera columna (índice 0)
                 $('td:eq(0)', row).css({
                     'font-weight': 'bold', // Establecer negrita para la primera columna
-                    'color': '#169da6'
+                    'color': '#373737'
                 });
                 if (data[2] == "" && data[3] == "") {
                     $('td', row).css({
                         'background-color': '#f6e683',
-                        'color': '#169da6',
+                        'color': '#373737',
                         'border-style': '',
                         'border-color': '#aaa196'
                     })
@@ -320,12 +489,12 @@
                 // Aplicar estilo a la primera columna (índice 0)
                 $('td:eq(0)', row).css({
                     'font-weight': 'bold', // Establecer negrita para la primera columna
-                    'color': '#169da6'
+                    'color': '#373737'
                 });
                 if (data[2] == "" && data[3] == "") {
                     $('td', row).css({
                         'background-color': '#f6e683',
-                        'color': '#169da6',
+                        'color': '#373737',
                         'border-style': '',
                         'border-color': '#aaa196'
                     })
@@ -351,12 +520,74 @@
                 // Aplicar estilo a la primera columna (índice 0)
                 $('td:eq(0)', row).css({
                     'font-weight': 'bold', // Establecer negrita para la primera columna
-                    'color': '#169da6'
+                    'color': '#373737'
                 });
                 if (data[2] == "" && data[3] == "") {
                     $('td', row).css({
                         'background-color': '#f6e683',
-                        'color': '#169da6',
+                        'color': '#373737',
+                        'border-style': '',
+                        'border-color': '#aaa196'
+                    })
+                }
+            },
+            "searching": false,
+            "info": false, // Deshabilita la información de registros
+            "pageLength": 25,
+            "lengthChange": false,
+            "lengthMenu": [
+                [10, 25, 50, -1],
+                [10, 25, 50, "Todos"]
+            ],
+            "paging": false,
+            "ordering": false,
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
+            }
+        });
+
+        $('#interconsultas-table5').DataTable({
+            "createdRow": function(row, data, index) {
+                // Aplicar estilo a la primera columna (índice 0)
+                $('td:eq(0)', row).css({
+                    'font-weight': 'bold', // Establecer negrita para la primera columna
+                    'color': '#373737'
+                });
+                if (data[2] == "" && data[3] == "") {
+                    $('td', row).css({
+                        'background-color': '#f6e683',
+                        'color': '#373737',
+                        'border-style': '',
+                        'border-color': '#aaa196'
+                    })
+                }
+            },
+            "searching": false,
+            "info": false, // Deshabilita la información de registros
+            "pageLength": 25,
+            "lengthChange": false,
+            "lengthMenu": [
+                [10, 25, 50, -1],
+                [10, 25, 50, "Todos"]
+            ],
+            "paging": false,
+            "ordering": false,
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
+            }
+        });
+
+        $('#interconsultas-table6').DataTable({
+            "createdRow": function(row, data, index) {
+                // Aplicar estilo a la primera columna (índice 0)
+                $('td:eq(0)', row).css({
+                    'font-weight': 'bold', // Establecer negrita para la primera columna
+                    'color': '#373737'
+                });
+                if (data[2] == "" && data[3] == "") {
+                    $('td', row).css({
+                        'background-color': '#f6e683',
+                        'color': '#373737',
                         'border-style': '',
                         'border-color': '#aaa196'
                     })
@@ -520,60 +751,16 @@
     document.addEventListener("DOMContentLoaded", function() {
         var sidebar = document.getElementById("mySidebar");
         var navbar = document.getElementById("myNavbar");
+        var footer = document.getElementById("myFooter");
+
         if (sidebar) {
             navbar.style.display = 'none';
             sidebar.style.display = 'none';
+            footer.style.display = 'none';
             content.style.width = '100%';
-
         }
     });
 </script>
 
-<script>
-    // Obtén las referencias a tus vistas por sus IDs
-    var vista1 = document.getElementById("vista1");
-    var vista2 = document.getElementById("vista2");
 
-    // Un arreglo con las vistas para facilitar la alternancia
-    var vistas = [vista1, vista2];
-    var currentIndex = 0;
-
-    // Función para mostrar la vista actual y ocultar la otra
-    function mostrarVistaActual() {
-        vistas.forEach(function(vista, index) {
-            if (index === currentIndex) {
-                vista.style.display = "block";
-            } else {
-                vista.style.display = "none";
-            }
-        });
-
-        // Cambiar al índice de la otra vista
-        currentIndex = 1 - currentIndex;
-    }
-
-
-    // Mostrar la primera vista al cargar la página
-    mostrarVistaActual();
-
-    // Accede al campo de entrada oculto por su id
-    var nombreUsuario = document.getElementById("nombreUsuario").value;
-
-    // Ahora, la variable nombreUsuario contiene el valor del nombre de usuario en JavaScript
-
-    // Accede al elemento con el id "hemato"
-    var hematoElement = document.getElementById("hemato");
-    var hemato2Element = document.getElementById("hemato2");
-
-    if (nombreUsuario === '3ER_PISO_PAB_II') {
-        console.log(nombreUsuario);
-    } else if (nombreUsuario === '3ER_PISO_HEMATO') {
-        hematoElement.classList.remove("col-md-6");
-        hematoElement.classList.add("col-md-12");
-        hemato2Element.style.display = "none";
-        console.log(nombreUsuario);
-    } else {
-        setInterval(mostrarVistaActual, 30000);
-    }
-</script>
 @endsection
