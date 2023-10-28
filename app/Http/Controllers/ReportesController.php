@@ -208,7 +208,7 @@ class ReportesController extends Controller
                    INNER JOIN MAEESP ON MAEESP.MECodE = INTERCN.MECodE
                    WHERE h.HISCKEY = CAPBAS.MPCEDU AND INTERCN.IntCtvIn = TMPFAC.TMCTVING AND IntEst = 'O'
                    FOR XML PATH('')), 1, 1, '') AS INTERCONSULTAS,
-            STUFF((SELECT DISTINCT ', ' + COALESCE(CAST(RTRIM(MA.TpPrCd) AS VARCHAR(50))+'','') + SUBSTRING(RTRIM(PrNomb), 1, 25)
+            STUFF((SELECT DISTINCT ', ' + COALESCE(CAST(RTRIM(MA.TpPrCd) AS VARCHAR(50))+'','') + SUBSTRING(RTRIM(PrNomb), 1, 15)
                    FROM HCCOM51
                    INNER JOIN HCCOM1 h ON h.HISCKEY = HCCOM51.HISCKEY AND h.HISTipDoc = HCCOM51.HISTipDoc AND HCCOM51.HISCSEC = H.HISCSEC
                    INNER JOIN MAEPRO MA ON MA.PRCODI = HCCOM51.HCPrcCod
