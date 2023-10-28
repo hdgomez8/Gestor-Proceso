@@ -53,26 +53,9 @@
     }
 
     .clase-clinica {
-        display: inline-block;
         /* Aplica un radio del 50% para que sea ovalado */
         /* Ajusta el espacio entre el texto y el borde */
         color: #373737;
-    }
-
-    table.dataTable>thead>tr>th:not(.sorting_disabled),
-    table.dataTable>thead>tr>td:not(.sorting_disabled) {
-        padding-right: 0px;
-    }
-
-    table.dataTable.compact thead th,
-    table.dataTable.compact thead td {
-        padding: 4px 0px;
-    }
-
-    .main-panel>.content {
-        margin-top: 0;
-        /* Elimina el margen superior */
-        padding: 5px 15px;
     }
 
     /* Estilo para el texto en las celdas de la tabla */
@@ -94,7 +77,76 @@
     #interconsultas-table5 th,
     #interconsultas-table6 th {
         font-size: 12px;
+        /* Ajusta el ancho según tus preferencias */
         /* Ajusta el tamaño de fuente según tus preferencias */
+    }
+
+    /* Establece porcentajes de ancho para las columnas de la tabla */
+    #interconsultas-table th:nth-child(1),
+    #interconsultas-table td:nth-child(1),
+    #interconsultas-table2 th:nth-child(1),
+    #interconsultas-table2 td:nth-child(1),
+    #interconsultas-table3 th:nth-child(1),
+    #interconsultas-table3 td:nth-child(1),
+    #interconsultas-table4 th:nth-child(1),
+    #interconsultas-table4 td:nth-child(1),
+    #interconsultas-table5 th:nth-child(1),
+    #interconsultas-table5 td:nth-child(1),
+    #interconsultas-table6 th:nth-child(1),
+    #interconsultas-table6 td:nth-child(1) {
+        width: 5%;
+        /* Porcentaje de ancho para la primera columna */
+    }
+
+    /* Establece porcentajes de ancho para las columnas de la tabla */
+    #interconsultas-table th:nth-child(2),
+    #interconsultas-table td:nth-child(2),
+    #interconsultas-table2 th:nth-child(2),
+    #interconsultas-table2 td:nth-child(2),
+    #interconsultas-table3 th:nth-child(2),
+    #interconsultas-table3 td:nth-child(2),
+    #interconsultas-table4 th:nth-child(2),
+    #interconsultas-table4 td:nth-child(2),
+    #interconsultas-table5 th:nth-child(2),
+    #interconsultas-table5 td:nth-child(2),
+    #interconsultas-table6 th:nth-child(2),
+    #interconsultas-table6 td:nth-child(2) {
+        width: 20%;
+        /* Porcentaje de ancho para la primera columna */
+    }
+
+    /* Establece porcentajes de ancho para las columnas de la tabla */
+    #interconsultas-table th:nth-child(3),
+    #interconsultas-table td:nth-child(3),
+    #interconsultas-table2 th:nth-child(3),
+    #interconsultas-table2 td:nth-child(3),
+    #interconsultas-table3 th:nth-child(3),
+    #interconsultas-table3 td:nth-child(3),
+    #interconsultas-table4 th:nth-child(3),
+    #interconsultas-table4 td:nth-child(3),
+    #interconsultas-table5 th:nth-child(3),
+    #interconsultas-table5 td:nth-child(3),
+    #interconsultas-table6 th:nth-child(3),
+    #interconsultas-table6 td:nth-child(3) {
+        width: 20%;
+        /* Porcentaje de ancho para la primera columna */
+    }
+
+    /* Establece porcentajes de ancho para las columnas de la tabla */
+    #interconsultas-table th:nth-child(4),
+    #interconsultas-table td:nth-child(4),
+    #interconsultas-table2 th:nth-child(4),
+    #interconsultas-table2 td:nth-child(4),
+    #interconsultas-table3 th:nth-child(4),
+    #interconsultas-table3 td:nth-child(4),
+    #interconsultas-table4 th:nth-child(4),
+    #interconsultas-table4 td:nth-child(4),
+    #interconsultas-table5 th:nth-child(4),
+    #interconsultas-table5 td:nth-child(4),
+    #interconsultas-table6 th:nth-child(4),
+    #interconsultas-table6 td:nth-child(4) {
+        width: 55%;
+        /* Porcentaje de ancho para la primera columna */
     }
 </style>
 
@@ -713,18 +765,18 @@
                     }
 
                     // Agregar clases según el contenido
-                    if (subcadena === 'POLITERAPIA ANTINEOPLÁSIC' ||
-                        subcadena === 'POLIQUIMIOTERAPIA DE BAJO' ||
-                        subcadena === 'CICLO COMPLETO DE TRATAMI' ||
-                        subcadena === 'MONOTERAPIA ANTINEOPLASIC' ||
-                        subcadena === 'QUIMIOTERAPIA DE INDUCCIO' ||
-                        subcadena === 'TELETERAPIA CON ACELERADO' ||
-                        subcadena === 'TELETERAPIA CON ELECTRONE' ||
-                        subcadena === 'RADIOCIRUGÍA INTRACRANEAL' ||
-                        subcadena === 'RADIOCIRUGÍA EXTRACRANEAL' ||
-                        subcadena === 'QUIMIOTERAPIA INTRATECAL') {
+                    if (subcadena === 'POLITERAPIA ANT' ||
+                        subcadena === 'POLIQUIMIOTERAP' ||
+                        subcadena === 'CICLO COMPLETO ' ||
+                        subcadena === 'MONOTERAPIA ANT' ||
+                        subcadena === 'QUIMIOTERAPIA D' ||
+                        subcadena === 'TELETERAPIA CON' ||
+                        subcadena === 'TELETERAPIA CON' ||
+                        subcadena === 'RADIOCIRUGÍA IN' ||
+                        subcadena === 'RADIOCIRUGÍA EX' ||
+                        subcadena === 'QUIMIOTERAPIA I') {
                         span.classList.add('clase-morado');
-                    } else if (subcadena === 'HEMODIALISIS CON BICARBON') {
+                    } else if (subcadena === 'HEMODIALISIS CO') {
                         span.classList.add('clase-rojo');
                     } else if (firstChar === '5') {
                         span.classList.add('clase-azul');
