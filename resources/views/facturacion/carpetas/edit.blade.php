@@ -245,6 +245,9 @@ $CscId = trim($carpeta->IngCsc); @endphp value="{{ $CscId ?? 'None' }}"
                                                     <option value="SOPORTE A DEVOLUCION">SOPORTE A DEVOLUCION
                                                     </option>
                                                 @endcan
+                                                @can('facturacion_nombreDocumento_facturacion')
+                                                    <option value="VISADO">VISADO</option>
+                                                @endcan
                                             </select>
                                             <input type="file" name="adjunto1" accept="application/pdf" id="adjunto1">
                                         </div>
@@ -380,6 +383,9 @@ $CscId = trim($carpeta->IngCsc); @endphp value="{{ $CscId ?? 'None' }}"
                                                 @can('facturacion_nombreDocumento_facturacion')
                                                     <option value="SOPORTE A DEVOLUCION">SOPORTE A DEVOLUCION
                                                     </option>
+                                                @endcan
+                                                @can('facturacion_nombreDocumento_facturacion')
+                                                    <option value="VISADO">VISADO</option>
                                                 @endcan
                                             </select>
                                             <input type="file" name="adjunto2" accept="application/pdf" id="adjunto2">
@@ -522,9 +528,11 @@ $CscId = trim($carpeta->IngCsc); @endphp value="{{ $CscId ?? 'None' }}"
                                                     <option value="SOPORTE A DEVOLUCION">SOPORTE A DEVOLUCION
                                                     </option>
                                                 @endcan
+                                                @can('facturacion_nombreDocumento_facturacion')
+                                                    <option value="VISADO">VISADO</option>
+                                                @endcan
                                             </select>
                                             <input type="file" name="adjunto3" accept="application/pdf" id="adjunto3">
-
                                         </div>
 
                                         <div>
@@ -659,6 +667,9 @@ $CscId = trim($carpeta->IngCsc); @endphp value="{{ $CscId ?? 'None' }}"
                                                     <option value="SOPORTE A DEVOLUCION">SOPORTE A DEVOLUCION
                                                     </option>
                                                 @endcan
+                                                @can('facturacion_nombreDocumento_facturacion')
+                                                    <option value="VISADO">VISADO</option>
+                                                @endcan
                                             </select>
                                             <input type="file" name="adjunto4" accept="application/pdf" id="adjunto4">
 
@@ -752,7 +763,7 @@ $rutaArchivo = trim($archivo->ruta);
                             <div class="container">
                                 <div class="row mt-3">
                                     <div class="col-5 my-4">
-                                        <h2>Alistar</h2>
+                                        <h2>Alistar</h2><button id="moverArchivosBtn">Mover Archivos</button>
                                         <div class="list-group" id="listado_Archivos">
                                             @foreach ($archivos as $archivo)
                                                 <div class="list-group-item mb-0" data-id="{{ $archivo->id }}">
@@ -796,7 +807,8 @@ $rutaArchivo = trim($archivo->ruta);
 
 
     <script>
-        var id = {!! $id !!};
+        function inicializarOrdenArchivos() {
+            var id = {!! $id !!};
         var ruta = "{!! $rutaArchivoSin !!}";
         let ordenArchivos;
         var listado_Archivos = document.getElementById('listado_Archivos');
@@ -844,6 +856,30 @@ $rutaArchivo = trim($archivo->ruta);
             handle: ".fass",
             ghostClass: "active",
         });
+
+        }
+
+
+        function moverArchivosSinOrden() {
+                            // Move files without sorting
+                            document.getElementById('moverArchivosBtn').addEventListener('click', function() {
+            const archivosOrdenados = localStorage.getItem('archivosOrdenados');
+
+            if (archivosOrdenados) {
+                const archivos = JSON.parse(archivosOrdenados);
+
+                archivos.forEach(archivo => {
+                    const elemento = document.querySelector('[data-id="' + archivo + '"]');
+                    if (elemento) {
+                        listado_Archivos_SinConcatenar.appendChild(elemento);
+                    }
+                });
+
+                listado_Archivos.innerHTML = '';
+            }
+        });
+        }
+
 
         $('#formularioUnirPdf').on('submit', function(e) {
             e.preventDefault();
