@@ -115,8 +115,8 @@
             @endcan
             {{-- ------------------------------------------ --}}
 
-            <!--{{-- Modulo de Farmacia --}}
-@can('modulo_farmacia')
+            {{-- Modulo de Farmacia --}}
+            @can('modulo_farmacia')
             <li class="nav-item {{ $activePage == 'Farmacia' ? ' active' : '' }}">
                 <a class="nav-link" data-toggle="collapse" href="#laravelExample4" aria-expanded="true">
                     <i class="material-icons">vignette</i>
@@ -125,7 +125,7 @@
                     </p>
                 </a>
                 <div class="collapse" id="laravelExample4">
-@can('farmacia_despacho')
+                    @can('farmacia_despacho')
                     <ul class="nav">
                         <li class="nav-item{{ $activePage == 'FarmaciaDespacho' ? ' active' : '' }}">
                             <a class="nav-link" href="{{ route('despacho.index') }}">
@@ -134,11 +134,11 @@
                             </a>
                         </li>
                     </ul>
-@endcan
+                    @endcan
                 </div>
             </li>
-@endcan
-            {{-- ------------------------------------------ --}} -->
+            @endcan
+
 
             <!-- {{-- Modulo de Laboratorio --}}
 @can('modulo_laboratorio')

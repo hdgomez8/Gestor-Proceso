@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Capbas;
 use Illuminate\Http\Request;
 use App\Models\Despachos;
+use Illuminate\Support\Facades\DB; // Assuming your model namespace is App\Models
 
 
 class FarmaciaController extends Controller
@@ -12,12 +13,18 @@ class FarmaciaController extends Controller
     //index, create, store, show, edit, update y destroy
     public function index()
     {
-        $despachos = Despachos::where('DsCnsDsp', '<>', 0)
-        ->whereYear('DSmFHrMov', '2022')  
-        ->orderBy('DsCnsDsp', 'desc')
-        ->paginate(20);
-
-        $despachos = $despachos->unique('HISCKEY');
+        $sql = "select  distinct top 20 D.HISTipDoc,D.HISCKEY,MPNOMC Nombre,
+        DsNumDoc Despacho 
+        from DSPFRMC D
+        INNER JOIN DSPFRMC1 D1 ON D1.HISCKEY =D.HISCKEY AND D.HISTipDoc=D1.HISTipDoc AND D.HISCSEC=D1.HISCSEC AND D.MSRESO =D1.MSRESO
+        INNER JOIN CAPBAS C ON C.MPCedu=D.HISCKEY AND MPTDoc=D.HISTipDoc
+        INNER JOIN HCCOM1 HC ON HC.HISCKEY=D.HISCKEY  and  hc.HISTipDoc=D.HISTipDoc and hc.HISCSEC=D.HISCSEC
+        INNER JOIN MAEPAB M ON M.MPCODP =HCCODPAB
+        INNER JOIN MAEEMP E ON E.MENNIT=FHCCodCto
+        INNER JOIN MAESUM1 MA ON MA.MSRESO=D1.MSRESO
+         where DSmFHrMov between dateadd (hour,-5,getdate())  and getdate() and  DsNumDoc<>'0' and DSCodEmp='01'  order by DsNumDoc desc        
+        ";
+        $despachos = DB::connection('sqlsrv2')->select($sql);
 
         //dd($despachos);
         $despachosNombre = [];
@@ -32,7 +39,7 @@ class FarmaciaController extends Controller
                 'HISTipDoc' => $despacho->HISTipDoc,
                 'HISCKEY' => $despacho->HISCKEY,
                 'MPNOMC' => $busqueda->MPNOMC ?? "",
-                'DsCnsDsp' => $despacho->DsCnsDsp
+                'DsCnsDsp' => $despacho->Despacho
             ];
         }
         //dd($despachosNombre);
