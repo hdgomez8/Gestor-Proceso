@@ -159,6 +159,9 @@ $CscId = trim($carpeta->IngCsc); @endphp value="{{ $CscId ?? 'None' }}"
                                                 @can('facturacion_nombreDocumento_admisiones')
                                                     <option value="COMPROBADOR DE DERECHO">COMPROBADOR DE DERECHO</option>
                                                 @endcan
+                                                @can('facturacion_nombreDocumento_facturacion')
+                                                    <option value="CONCILIACION">CONCILIACION</option>
+                                                @endcan
                                                 @can('facturacion_nombreDocumento_autorizacionesHos')
                                                     <option value="COTIZACION">COTIZACION</option>
                                                 @endcan
@@ -236,6 +239,9 @@ $CscId = trim($carpeta->IngCsc); @endphp value="{{ $CscId ?? 'None' }}"
                                                 @endcan
                                                 @can('facturacion_nombreDocumento_admisiones')
                                                     <option value="SISBEN">SISBEN</option>
+                                                @endcan
+                                                @can('facturacion_nombreDocumento_facturacion')
+                                                    <option value="SISMUESTRA">SISMUESTRA</option>
                                                 @endcan
                                                 @can('facturacion_nombreDocumento_autorizacionesHos')
                                                     <option value="SOLICITUD">SOLICITUD</option>
@@ -298,6 +304,9 @@ $CscId = trim($carpeta->IngCsc); @endphp value="{{ $CscId ?? 'None' }}"
                                                 @can('facturacion_nombreDocumento_admisiones')
                                                     <option value="COMPROBADOR DE DERECHO">COMPROBADOR DE DERECHO</option>
                                                 @endcan
+                                                @can('facturacion_nombreDocumento_facturacion')
+                                                    <option value="CONCILIACION">CONCILIACION</option>
+                                                @endcan
                                                 @can('facturacion_nombreDocumento_autorizacionesHos')
                                                     <option value="COTIZACION">COTIZACION</option>
                                                 @endcan
@@ -375,6 +384,9 @@ $CscId = trim($carpeta->IngCsc); @endphp value="{{ $CscId ?? 'None' }}"
                                                 @endcan
                                                 @can('facturacion_nombreDocumento_admisiones')
                                                     <option value="SISBEN">SISBEN</option>
+                                                @endcan
+                                                @can('facturacion_nombreDocumento_facturacion')
+                                                    <option value="SISMUESTRA">SISMUESTRA</option>
                                                 @endcan
                                                 @can('facturacion_nombreDocumento_autorizacionesHos')
                                                     <option value="SOLICITUD">SOLICITUD</option>
@@ -442,6 +454,9 @@ $CscId = trim($carpeta->IngCsc); @endphp value="{{ $CscId ?? 'None' }}"
                                                 @can('facturacion_nombreDocumento_admisiones')
                                                     <option value="COMPROBADOR DE DERECHO">COMPROBADOR DE DERECHO</option>
                                                 @endcan
+                                                @can('facturacion_nombreDocumento_facturacion')
+                                                    <option value="CONCILIACION">CONCILIACION</option>
+                                                @endcan
                                                 @can('facturacion_nombreDocumento_autorizacionesHos')
                                                     <option value="COTIZACION">COTIZACION</option>
                                                 @endcan
@@ -519,6 +534,9 @@ $CscId = trim($carpeta->IngCsc); @endphp value="{{ $CscId ?? 'None' }}"
                                                 @endcan
                                                 @can('facturacion_nombreDocumento_admisiones')
                                                     <option value="SISBEN">SISBEN</option>
+                                                @endcan
+                                                @can('facturacion_nombreDocumento_facturacion')
+                                                    <option value="SISMUESTRA">SISMUESTRA</option>
                                                 @endcan
                                                 @can('facturacion_nombreDocumento_autorizacionesHos')
                                                     <option value="SOLICITUD">SOLICITUD</option>
@@ -582,6 +600,9 @@ $CscId = trim($carpeta->IngCsc); @endphp value="{{ $CscId ?? 'None' }}"
                                                 @can('facturacion_nombreDocumento_admisiones')
                                                     <option value="COMPROBADOR DE DERECHO">COMPROBADOR DE DERECHO</option>
                                                 @endcan
+                                                @can('facturacion_nombreDocumento_facturacion')
+                                                    <option value="CONCILIACION">CONCILIACION</option>
+                                                @endcan
                                                 @can('facturacion_nombreDocumento_autorizacionesHos')
                                                     <option value="COTIZACION">COTIZACION</option>
                                                 @endcan
@@ -659,6 +680,9 @@ $CscId = trim($carpeta->IngCsc); @endphp value="{{ $CscId ?? 'None' }}"
                                                 @endcan
                                                 @can('facturacion_nombreDocumento_admisiones')
                                                     <option value="SISBEN">SISBEN</option>
+                                                @endcan
+                                                @can('facturacion_nombreDocumento_facturacion')
+                                                    <option value="SISMUESTRA">SISMUESTRA</option>
                                                 @endcan
                                                 @can('facturacion_nombreDocumento_autorizacionesHos')
                                                     <option value="SOLICITUD">SOLICITUD</option>
@@ -782,7 +806,7 @@ $rutaArchivo = trim($archivo->ruta);
                                             <div><label for="numeroFactura">Numero De Factura</label>
 
                                                 <input type="text" id="numeroFactura" name="numeroFactura" required
-                                                    minlength="4" maxlength="20" size="20">
+                                                    minlength="4" maxlength="50" size="50">
                                             </div>
                                             <button class="btn btn-sm btn-primary" type="submit">Unir PDF</button>
                                         </form>
