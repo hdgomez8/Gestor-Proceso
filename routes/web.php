@@ -42,15 +42,20 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/carpetas/pacientes', [App\Http\Controllers\CarpetaController::class, 'buscarPacienteCarpetas'])->name('carpetas.buscarPacienteCarpetas');
     Route::post('/carpetas/facturas', [App\Http\Controllers\CarpetaController::class, 'buscarFacturaPaciente'])->name('carpetas.buscarFactura');
     Route::get('/carpetas/{id}/descarga', [App\Http\Controllers\CarpetaController::class, 'DescargarFacturaPaciente'])->name('carpetas.descargarFactura');
+    Route::get('/descargarFacturaCortes', [App\Http\Controllers\CarpetaController::class, 'descargarFacturaCortes'])->name('descargarFacturaCortes');
     Route::get('/carpetas/pacientes', [App\Http\Controllers\CarpetaController::class, 'pacientes'])->name('carpetas.pacientes');
     Route::get('/carpetas/rips', [App\Http\Controllers\CarpetaController::class, 'rips'])->name('carpetas.rips');
     Route::post('/carpetas/{carpeta}/editado', [App\Http\Controllers\CarpetaController::class, 'editado'])->name('carpetas.editado');
     Route::post("/insertar", [App\Http\Controllers\CarpetaController::class, "insertar"])->name('carpetas.insertar');
     Route::post("/guardar", [App\Http\Controllers\CarpetaController::class, "guardar"])->name('carpetas.guardar');
+    Route::post("/crearCorte", [App\Http\Controllers\CarpetaController::class, "crearCorte"])->name('carpetas.crearCorte');
     Route::delete('/archivos/{id}', [App\Http\Controllers\CarpetaController::class, 'destroyArchivo'])->name('destroyArchivo.delete');
     Route::post("/unirPdf", [App\Http\Controllers\CarpetaController::class, "unirPdf"])->name('carpetas.unirPdf');
     Route::resource('pedidos', App\Http\Controllers\PedidosController::class);
     Route::get('/laboratorio/create', [App\Http\Controllers\UserController::class, 'create'])->name('laboratorio.create');
+    Route::get('/obtenerCarpetasCortes',  [App\Http\Controllers\CarpetaController::class, 'obtenerCarpetasCortes'])->name('obtenerCarpetasCortes');
+    Route::get('/moverArchivoCortes',  [App\Http\Controllers\CarpetaController::class, 'moverArchivoCortes'])->name('moverArchivoCortes');
+    Route::get('/obtenerContenidoCarpeta',  [App\Http\Controllers\CarpetaController::class, 'obtenerContenidoCarpeta'])->name('obtenerContenidoCarpeta');
 
     Route::get('/test', [App\Http\Controllers\TestController::class, 'test']);
     Route::get('/test2', [App\Http\Controllers\TestController::class, 'test2']);
