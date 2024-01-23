@@ -18,7 +18,6 @@ use Webklex\PDFMerger\Facades\PDFMergerFacade as PDFMerger;
 
 class CarpetaController extends Controller
 {
-
     //******************************************************************* */
     //*************Visualizar usuarios de hosvital*********************** */
     //******************************************************************* */
@@ -51,18 +50,20 @@ class CarpetaController extends Controller
         $diaIngresoCarpeta = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $request->get('Fecha'))->toDateString();
         $factura = trim($request->get('NumeroFactura'));
 
-        if ($paciente = Carpetas::where("MPTDoc", $tipoId)
-            ->where("MPCedu", $numeroId)
-            ->where("MPNOMC", $nombre)
-            ->where("MENNIT", $contratoID)
-            ->where("MENOMB", $eps)
-            ->where("IngCsc", $CscId)
-            ->where("IngFac", $factura)
-            ->exists()
+        if (
+            $paciente = Carpetas::where('MPTDoc', $tipoId)
+                ->where('MPCedu', $numeroId)
+                ->where('MPNOMC', $nombre)
+                ->where('MENNIT', $contratoID)
+                ->where('MENOMB', $eps)
+                ->where('IngCsc', $CscId)
+                ->where('IngFac', $factura)
+                ->exists()
         ) {
-            return redirect()->route('carpetas.index')->with('success', 'Usuario Ya Existe');
+            return redirect()
+                ->route('carpetas.index')
+                ->with('success', 'Usuario Ya Existe');
         } else {
-
             /**Verificamos si existe el directorio */
             $ruta = public_path("Archivos\\$diaIngresoCarpeta\\$eps\\$tipoId$numeroId");
 
@@ -95,7 +96,6 @@ class CarpetaController extends Controller
                 ->orderBy('id', 'desc')
                 ->value('id');
 
-
             // Encontrar la carpeta donde se encuentra el archivo
             $Archivo = DB::table('pacientes')
                 ->join('archivos', 'archivos.id_Paciente', '=', 'pacientes.id')
@@ -105,7 +105,6 @@ class CarpetaController extends Controller
                 ->where('pacientes.mpcedu', 'like', '%' . $numeroId . '%')
                 ->latest('pacientes.id')
                 ->first();
-
 
             if ($Archivo) {
                 // Encontrar la ruta del archivo
@@ -118,7 +117,7 @@ class CarpetaController extends Controller
                 copy($rutaArchivo, $rutaNueva);
 
                 //  dd($ruta);
-                $documento = new Archivos;
+                $documento = new Archivos();
                 $documento->usuario = auth()->user()->username;
                 $documento->id_Paciente = $idUsuario;
                 $documento->ruta = $ruta . '\\';
@@ -127,8 +126,9 @@ class CarpetaController extends Controller
                 $documento->save();
             }
 
-
-            return redirect()->route('carpetas.index')->with('success', 'Usuario Creado Correctamente');
+            return redirect()
+                ->route('carpetas.index')
+                ->with('success', 'Usuario Creado Correctamente');
         }
     }
 
@@ -138,11 +138,9 @@ class CarpetaController extends Controller
     public function show()
     {
         try {
-            $carpetas = Carpetas::orderBy("id", 'DESC')
-                ->paginate(15);
+            $carpetas = Carpetas::orderBy('id', 'DESC')->paginate(15);
 
-            $archivos = Archivos::where("nombre_Archivo", "like", 1 . '%')
-                ->paginate(10);
+            $archivos = Archivos::where('nombre_Archivo', 'like', 1 . '%')->paginate(10);
 
             return view('facturacion.carpetas.show', compact('carpetas', 'archivos'));
         } catch (QueryException $qe) {
@@ -164,30 +162,30 @@ class CarpetaController extends Controller
         try {
             $validData = $request->validate([
                 'tipoDocumento' => 'required',
-                'numeroDocumento' => 'required'
+                'numeroDocumento' => 'required',
             ]);
-    
+
             $tipoDocumento = trim($request->get('tipoDocumento'));
             $numeroDocumento = trim($request->get('numeroDocumento'));
             $contrato = trim($request->get('contrato'));
-    
-            $sql = "SELECT ingresos.MPTDoc,ingresos.MPCedu,capbas.MPNOMC,INGRESOS.IngFecAdm,ingresos.IngFac,INGRESOS.IngNit,MAEEMP.MENOMB, INGRESOS.IngCsc 
-            FROM INGRESOS 
+
+            $sql = "SELECT ingresos.MPTDoc,ingresos.MPCedu,capbas.MPNOMC,INGRESOS.IngFecAdm,ingresos.IngFac,INGRESOS.IngNit,MAEEMP.MENOMB, INGRESOS.IngCsc
+            FROM INGRESOS
             join CAPBAS on ingresos.MPTDoc = capbas.MPTDoc and INGRESOS.MPCedu = CAPBAS.MPCedu
             join MAEEMP on ingresos.IngNit = maeemp.MENNIT
             WHERE INGRESOS.MPTDoc = '$tipoDocumento' AND INGRESOS.MPCedu = '$numeroDocumento' order by ingresos.IngFecAdm desc ";
             $carpetas = DB::connection('sqlsrv2')->select($sql);
-    
+
             $contratos = Maeemp::where('MEestado', 0)
                 ->where('MEEmpcod', 1)
-                ->orderBy("MENOMB", 'asc')
+                ->orderBy('MENOMB', 'asc')
                 ->get();
-    
-            $carpetass = Ingreso::where("INGRESOS.MPTDoc", "like", $tipoDocumento . '%')
-                ->where("INGRESOS.MPCedu", "like", $numeroDocumento . '%')
+
+            $carpetass = Ingreso::where('INGRESOS.MPTDoc', 'like', $tipoDocumento . '%')
+                ->where('INGRESOS.MPCedu', 'like', $numeroDocumento . '%')
                 ->orderBy('INGRESOS.IngCsc', 'DESC')
                 ->paginate(30);
-    
+
             return view('facturacion.carpetas.index', compact('carpetas', 'contratos', 'tipoDocumento', 'numeroDocumento'));
         } catch (ValidationException $ve) {
             return view('facturacion.error', ['error' => $ve->getMessage()]);
@@ -195,7 +193,6 @@ class CarpetaController extends Controller
             Log::error($e);
             return view('facturacion.error', ['error' => 'Ocurrió un error inesperado']);
         }
-
     }
 
     //******************************************************************* */
@@ -220,7 +217,6 @@ class CarpetaController extends Controller
         return view('facturacion.carpetas.show', compact('carpetas', 'archivos'));
     }
 
-
     //******************************************************************* */
     //*************Filtrar Factura del Gestor************************** */
     //******************************************************************* */
@@ -228,14 +224,14 @@ class CarpetaController extends Controller
     {
         //dd($request);
         $validData = $request->validate([
-            'numeroFactura' => 'required'
+            'numeroFactura' => 'required',
         ]);
 
         $numeroFactura = trim($request->get('numeroFactura'));
 
         $carpetas = Carpetas::paginate(10);
 
-        $archivos = Archivos::where("nombre_Archivo", "like", '%' . $numeroFactura . '%')
+        $archivos = Archivos::where('nombre_Archivo', 'like', '%' . $numeroFactura . '%')
             ->orderBy('nombre_Archivo', 'DESC')
             ->paginate(10);
 
@@ -247,20 +243,20 @@ class CarpetaController extends Controller
     //******************************************************************* */
     public function DescargarFacturaPaciente($id)
     {
-        // // //dd($id);
+        // dd($id);
         //  $archivos = Archivos::where("id", $id)->firstOrFail();
         //  $pathToFile = ($archivos->ruta . $archivos->nombre_Archivo);
         // // //dd($archivos->nombre_Archivo);
         //  return response()->download($pathToFile);
 
         try {
-            $archivos = Archivos::where("id", $id)->firstOrFail();
-            $pathToFile = ($archivos->ruta . $archivos->nombre_Archivo);
+            $archivos = Archivos::where('id', $id)->firstOrFail();
+            $pathToFile = $archivos->ruta . $archivos->nombre_Archivo;
 
             return response()->download($pathToFile);
         } catch (\Exception $e) {
             // Manejo de la excepción
-            return back()->withError("No se pudo descargar el archivo. Error: " . $e->getMessage());
+            return back()->withError('No se pudo descargar el archivo. Error: ' . $e->getMessage());
         }
 
         // $archivo = Archivos::find($id);
@@ -289,24 +285,39 @@ class CarpetaController extends Controller
             $eps = trim($carpeta->MENOMB);
             $diaIngresoCarpeta = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $carpeta->IngFecAdm)->toDateString();
             $id = trim($carpeta->id);
-    
+
             $ruta = public_path("Archivos\\$diaIngresoCarpeta\\$eps\\$tipoId$numeroId");
             $ruta2 = "$diaIngresoCarpeta\\$eps\\$tipoId$numeroId";
             $rutaArchivoSin = null;
-    
+
+            // Construir la ruta completa a la carpeta principal
+            $rutaCarpetas = public_path("Archivos\\{$diaIngresoCarpeta}\\{$eps}\\{$tipoId}{$numeroId}\\");
+
+            // dd($rutaCarpetas);
+            // Verificar si la ruta existe
+            // Verificar si la ruta existe
+            if (is_dir($rutaCarpetas)) {
+                // Escanear la ruta y obtener la lista de carpetas
+                $carpetas = array_filter(scandir($rutaCarpetas), function ($item) use ($rutaCarpetas) {
+                    return is_dir($rutaCarpetas . $item) && $item != '.' && $item != '..';
+                });
+            } else {
+                echo "La ruta '{$rutaCarpetas}' no existe.";
+            }
+            //dd($rutaCarpetas);
             //$archivos = Archivos::get();
-    
-            $archivos = Archivos::where("id_Paciente", "like",  $id)
+
+            $archivos = Archivos::where('id_Paciente', 'like', $id)
+                ->where('ruta', 'NOT LIKE', '%corte%') // Excluir registros con la palabra 'corte' en el campo 'ruta'
                 ->orderBy('nombre_Archivo', 'ASC')
                 ->paginate(100);
-    
+
             // dd($carpeta);
-            return view('facturacion.carpetas.edit', compact('ruta2', 'carpeta', 'ruta', 'archivos', 'rutaArchivoSin'));
+            return view('facturacion.carpetas.edit', compact('ruta2', 'carpeta', 'carpetas', 'ruta', 'archivos', 'rutaArchivoSin'));
         } catch (\Exception $e) {
             // Manejar la excepción aquí
             return view('facturacion.error', ['error' => $e->getMessage()]);
         }
-
     }
 
     //******************************************************************* */
@@ -322,12 +333,12 @@ class CarpetaController extends Controller
         $IngFecAdmI = '01/01/2021';
         $IngFecAdmF = '31/12/2021';
 
-        $carpeta = Ingreso::where("INGRESOS.MPTDoc", "like", '%' . $tipoDocumento . '%')
-            ->where("INGRESOS.MPCedu", "like", '%' . $numeroDocumento . '%')
+        $carpeta = Ingreso::where('INGRESOS.MPTDoc', 'like', '%' . $tipoDocumento . '%')
+            ->where('INGRESOS.MPCedu', 'like', '%' . $numeroDocumento . '%')
             ->orderBy('INGRESOS.IngCsc', 'DESC')
             ->paginate(10);
 
-        $carpetas = $carpeta->unique("MPCedu");
+        $carpetas = $carpeta->unique('MPCedu');
         return view('facturacion.carpetas.index', compact('carpetas'));
     }
 
@@ -348,22 +359,22 @@ class CarpetaController extends Controller
 
         // Detalles Del Documento Adjunto 1
         $fileType1 = $_FILES['adjunto1']['type'];
-        $fileNameCmps1 = explode("/", $fileType1);
+        $fileNameCmps1 = explode('/', $fileType1);
         $fileExtension1 = strtolower(end($fileNameCmps1));
 
         // Detalles Del Documento Adjunto 2
         $fileType2 = $_FILES['adjunto2']['type'];
-        $fileNameCmps2 = explode("/", $fileType2);
+        $fileNameCmps2 = explode('/', $fileType2);
         $fileExtension2 = strtolower(end($fileNameCmps2));
 
         // Detalles Del Documento Adjunto 3
         $fileType3 = $_FILES['adjunto3']['type'];
-        $fileNameCmps3 = explode("/", $fileType3);
+        $fileNameCmps3 = explode('/', $fileType3);
         $fileExtension3 = strtolower(end($fileNameCmps3));
 
         // Detalles Del Documento Adjunto 4
         $fileType4 = $_FILES['adjunto4']['type'];
-        $fileNameCmps4 = explode("/", $fileType4);
+        $fileNameCmps4 = explode('/', $fileType4);
         $fileExtension4 = strtolower(end($fileNameCmps4));
 
         /**Verificamos si existe el directorio Adjunto 1*/
@@ -406,176 +417,184 @@ class CarpetaController extends Controller
                         $archivo4 = $request->file('adjunto4');
                         if (file_exists($rutaArchivo1)) {
                             $a = 1;
-                            while (file_exists($ruta1 . $nombreDocumento1 . $a . "." . $fileExtension1)) {
+                            while (file_exists($ruta1 . $nombreDocumento1 . $a . '.' . $fileExtension1)) {
                                 $a++;
                             }
                             //guardar archivo
-                            $reg_Archivo1 = new Archivos;
+                            $reg_Archivo1 = new Archivos();
                             $reg_Archivo1->usuario = auth()->user()->username;
                             $reg_Archivo1->id_Paciente = $id;
                             $reg_Archivo1->ruta = $ruta1;
                             $reg_Archivo1->fecha_Guardado = Carbon::now();
-                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . $a . "." . $fileExtension1;
-                            $archivo1->move($ruta1, $nombreDocumento1 . $a . "." . $fileExtension1);
+                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . $a . '.' . $fileExtension1;
+                            $archivo1->move($ruta1, $nombreDocumento1 . $a . '.' . $fileExtension1);
                             $reg_Archivo1->save();
                         } else {
-                            $reg_Archivo1 = new Archivos;
+                            $reg_Archivo1 = new Archivos();
                             $reg_Archivo1->usuario = auth()->user()->username;
                             $reg_Archivo1->id_Paciente = $id;
                             $reg_Archivo1->ruta = $ruta1;
                             $reg_Archivo1->fecha_Guardado = Carbon::now();
-                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . "." . $fileExtension1;
-                            $archivo1->move($ruta1, $nombreDocumento1 . "." . $fileExtension1);
+                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . '.' . $fileExtension1;
+                            $archivo1->move($ruta1, $nombreDocumento1 . '.' . $fileExtension1);
                             $reg_Archivo1->save();
                         }
                         if (file_exists($rutaArchivo2)) {
                             $a = 1;
-                            while (file_exists($ruta2 . $nombreDocumento2 . $a . "." . $fileExtension2)) {
+                            while (file_exists($ruta2 . $nombreDocumento2 . $a . '.' . $fileExtension2)) {
                                 $a++;
                             }
-                            $reg_Archivo2 = new Archivos;
+                            $reg_Archivo2 = new Archivos();
                             $reg_Archivo2->usuario = auth()->user()->username;
                             $reg_Archivo2->id_Paciente = $id;
                             $reg_Archivo2->ruta = $ruta2;
                             $reg_Archivo2->fecha_Guardado = Carbon::now();
-                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2 . $a . "." . $fileExtension2;
-                            $archivo2->move($ruta2, $nombreDocumento2 . $a . "." . $fileExtension2);
+                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2 . $a . '.' . $fileExtension2;
+                            $archivo2->move($ruta2, $nombreDocumento2 . $a . '.' . $fileExtension2);
                             $reg_Archivo2->save();
                         } else {
-                            $reg_Archivo2 = new Archivos;
+                            $reg_Archivo2 = new Archivos();
                             $reg_Archivo2->usuario = auth()->user()->username;
                             $reg_Archivo2->id_Paciente = $id;
                             $reg_Archivo2->ruta = $ruta2;
                             $reg_Archivo2->fecha_Guardado = Carbon::now();
-                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2  . "." . $fileExtension2;
-                            $archivo2->move($ruta2, $nombreDocumento2  . "." . $fileExtension2);
+                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2 . '.' . $fileExtension2;
+                            $archivo2->move($ruta2, $nombreDocumento2 . '.' . $fileExtension2);
                             $reg_Archivo2->save();
                         }
                         if (file_exists($rutaArchivo3)) {
                             $a = 1;
-                            while (file_exists($ruta3 . $nombreDocumento3 . $a . "." . $fileExtension3)) {
+                            while (file_exists($ruta3 . $nombreDocumento3 . $a . '.' . $fileExtension3)) {
                                 $a++;
                             }
-                            $reg_Archivo3 = new Archivos;
+                            $reg_Archivo3 = new Archivos();
                             $reg_Archivo3->usuario = auth()->user()->username;
                             $reg_Archivo3->id_Paciente = $id;
                             $reg_Archivo3->ruta = $ruta3;
                             $reg_Archivo3->fecha_Guardado = Carbon::now();
-                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . $a . "." . $fileExtension3;
-                            $archivo3->move($ruta3, $nombreDocumento3 . $a . "." . $fileExtension3);
+                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . $a . '.' . $fileExtension3;
+                            $archivo3->move($ruta3, $nombreDocumento3 . $a . '.' . $fileExtension3);
                             $reg_Archivo3->save();
                         } else {
-                            $reg_Archivo3 = new Archivos;
+                            $reg_Archivo3 = new Archivos();
                             $reg_Archivo3->usuario = auth()->user()->username;
                             $reg_Archivo3->id_Paciente = $id;
                             $reg_Archivo3->ruta = $ruta3;
                             $reg_Archivo3->fecha_Guardado = Carbon::now();
-                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . "." . $fileExtension3;
-                            $archivo3->move($ruta3, $nombreDocumento3  . "." . $fileExtension3);
+                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . '.' . $fileExtension3;
+                            $archivo3->move($ruta3, $nombreDocumento3 . '.' . $fileExtension3);
                             $reg_Archivo3->save();
                         }
                         if (file_exists($rutaArchivo4)) {
                             $a = 1;
-                            while (file_exists($ruta4 . $nombreDocumento4 . $a . "." . $fileExtension4)) {
+                            while (file_exists($ruta4 . $nombreDocumento4 . $a . '.' . $fileExtension4)) {
                                 $a++;
                             }
-                            $reg_Archivo4 = new Archivos;
+                            $reg_Archivo4 = new Archivos();
                             $reg_Archivo4->usuario = auth()->user()->username;
                             $reg_Archivo4->id_Paciente = $id;
                             $reg_Archivo4->ruta = $ruta4;
                             $reg_Archivo4->fecha_Guardado = Carbon::now();
-                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4 . $a . "." . $fileExtension4;
-                            $archivo4->move($ruta4, $nombreDocumento4 . $a . "." . $fileExtension4);
+                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4 . $a . '.' . $fileExtension4;
+                            $archivo4->move($ruta4, $nombreDocumento4 . $a . '.' . $fileExtension4);
                             $reg_Archivo4->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                         } else {
-                            $reg_Archivo4 = new Archivos;
+                            $reg_Archivo4 = new Archivos();
                             $reg_Archivo4->usuario = auth()->user()->username;
                             $reg_Archivo4->id_Paciente = $id;
                             $reg_Archivo4->ruta = $ruta4;
                             $reg_Archivo4->fecha_Guardado = Carbon::now();
-                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4  . "." . $fileExtension4;
-                            $archivo4->move($ruta4, $nombreDocumento4  . "." . $fileExtension4);
+                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4 . '.' . $fileExtension4;
+                            $archivo4->move($ruta4, $nombreDocumento4 . '.' . $fileExtension4);
                             $reg_Archivo4->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                             // *******************************Fin Codigo funcional consecutivos*********************************************
                         }
                     } else {
                         if (file_exists($rutaArchivo1)) {
                             $a = 1;
-                            while (file_exists($ruta1 . $nombreDocumento1 . $a . "." . $fileExtension1)) {
+                            while (file_exists($ruta1 . $nombreDocumento1 . $a . '.' . $fileExtension1)) {
                                 $a++;
                             }
                             //guardar archivo
-                            $reg_Archivo1 = new Archivos;
+                            $reg_Archivo1 = new Archivos();
                             $reg_Archivo1->usuario = auth()->user()->username;
                             $reg_Archivo1->id_Paciente = $id;
                             $reg_Archivo1->ruta = $ruta1;
                             $reg_Archivo1->fecha_Guardado = Carbon::now();
-                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . $a . "." . $fileExtension1;
-                            $archivo1->move($ruta1, $nombreDocumento1 . $a . "." . $fileExtension1);
+                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . $a . '.' . $fileExtension1;
+                            $archivo1->move($ruta1, $nombreDocumento1 . $a . '.' . $fileExtension1);
                             $reg_Archivo1->save();
                         } else {
-                            $reg_Archivo1 = new Archivos;
+                            $reg_Archivo1 = new Archivos();
                             $reg_Archivo1->usuario = auth()->user()->username;
                             $reg_Archivo1->id_Paciente = $id;
                             $reg_Archivo1->ruta = $ruta1;
                             $reg_Archivo1->fecha_Guardado = Carbon::now();
-                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . "." . $fileExtension1;
-                            $archivo1->move($ruta1, $nombreDocumento1 . "." . $fileExtension1);
+                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . '.' . $fileExtension1;
+                            $archivo1->move($ruta1, $nombreDocumento1 . '.' . $fileExtension1);
                             $reg_Archivo1->save();
                         }
                         if (file_exists($rutaArchivo2)) {
                             $a = 1;
-                            while (file_exists($ruta2 . $nombreDocumento2 . $a . "." . $fileExtension2)) {
+                            while (file_exists($ruta2 . $nombreDocumento2 . $a . '.' . $fileExtension2)) {
                                 $a++;
                             }
-                            $reg_Archivo2 = new Archivos;
+                            $reg_Archivo2 = new Archivos();
                             $reg_Archivo2->usuario = auth()->user()->username;
                             $reg_Archivo2->id_Paciente = $id;
                             $reg_Archivo2->ruta = $ruta2;
                             $reg_Archivo2->fecha_Guardado = Carbon::now();
-                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2 . $a . "." . $fileExtension2;
-                            $archivo2->move($ruta2, $nombreDocumento2 . $a . "." . $fileExtension2);
+                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2 . $a . '.' . $fileExtension2;
+                            $archivo2->move($ruta2, $nombreDocumento2 . $a . '.' . $fileExtension2);
                             $reg_Archivo2->save();
                         } else {
-                            $reg_Archivo2 = new Archivos;
+                            $reg_Archivo2 = new Archivos();
                             $reg_Archivo2->usuario = auth()->user()->username;
                             $reg_Archivo2->id_Paciente = $id;
                             $reg_Archivo2->ruta = $ruta2;
                             $reg_Archivo2->fecha_Guardado = Carbon::now();
-                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2  . "." . $fileExtension2;
-                            $archivo2->move($ruta2, $nombreDocumento2  . "." . $fileExtension2);
+                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2 . '.' . $fileExtension2;
+                            $archivo2->move($ruta2, $nombreDocumento2 . '.' . $fileExtension2);
                             $reg_Archivo2->save();
                         }
                         if (file_exists($rutaArchivo3)) {
                             $a = 1;
-                            while (file_exists($ruta3 . $nombreDocumento3 . $a . "." . $fileExtension3)) {
+                            while (file_exists($ruta3 . $nombreDocumento3 . $a . '.' . $fileExtension3)) {
                                 $a++;
                             }
-                            $reg_Archivo3 = new Archivos;
+                            $reg_Archivo3 = new Archivos();
                             $reg_Archivo3->usuario = auth()->user()->username;
                             $reg_Archivo3->id_Paciente = $id;
                             $reg_Archivo3->ruta = $ruta3;
                             $reg_Archivo3->fecha_Guardado = Carbon::now();
-                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . $a . "." . $fileExtension3;
-                            $archivo3->move($ruta3, $nombreDocumento3 . $a . "." . $fileExtension3);
+                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . $a . '.' . $fileExtension3;
+                            $archivo3->move($ruta3, $nombreDocumento3 . $a . '.' . $fileExtension3);
                             $reg_Archivo3->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                         } else {
-                            $reg_Archivo3 = new Archivos;
+                            $reg_Archivo3 = new Archivos();
                             $reg_Archivo3->usuario = auth()->user()->username;
                             $reg_Archivo3->id_Paciente = $id;
                             $reg_Archivo3->ruta = $ruta3;
                             $reg_Archivo3->fecha_Guardado = Carbon::now();
-                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . "." . $fileExtension3;
-                            $archivo3->move($ruta3, $nombreDocumento3  . "." . $fileExtension3);
+                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . '.' . $fileExtension3;
+                            $archivo3->move($ruta3, $nombreDocumento3 . '.' . $fileExtension3);
                             $reg_Archivo3->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                         }
                     }
                 } else {
@@ -583,128 +602,136 @@ class CarpetaController extends Controller
                         $archivo4 = $request->file('adjunto4');
                         if (file_exists($rutaArchivo1)) {
                             $a = 1;
-                            while (file_exists($ruta1 . $nombreDocumento1 . $a . "." . $fileExtension1)) {
+                            while (file_exists($ruta1 . $nombreDocumento1 . $a . '.' . $fileExtension1)) {
                                 $a++;
                             }
-                            $reg_Archivo1 = new Archivos;
+                            $reg_Archivo1 = new Archivos();
                             $reg_Archivo1->usuario = auth()->user()->username;
                             $reg_Archivo1->id_Paciente = $id;
                             $reg_Archivo1->ruta = $ruta1;
                             $reg_Archivo1->fecha_Guardado = Carbon::now();
-                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . $a . "." . $fileExtension1;
-                            $archivo1->move($ruta1, $nombreDocumento1 . $a . "." . $fileExtension1);
+                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . $a . '.' . $fileExtension1;
+                            $archivo1->move($ruta1, $nombreDocumento1 . $a . '.' . $fileExtension1);
                             $reg_Archivo1->save();
                         } else {
-                            $reg_Archivo1 = new Archivos;
+                            $reg_Archivo1 = new Archivos();
                             $reg_Archivo1->usuario = auth()->user()->username;
                             $reg_Archivo1->id_Paciente = $id;
                             $reg_Archivo1->ruta = $ruta1;
                             $reg_Archivo1->fecha_Guardado = Carbon::now();
-                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . "." . $fileExtension1;
-                            $archivo1->move($ruta1, $nombreDocumento1 . "." . $fileExtension1);
+                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . '.' . $fileExtension1;
+                            $archivo1->move($ruta1, $nombreDocumento1 . '.' . $fileExtension1);
                             $reg_Archivo1->save();
                         }
                         if (file_exists($rutaArchivo2)) {
                             $a = 1;
-                            while (file_exists($ruta2 . $nombreDocumento2 . $a . "." . $fileExtension2)) {
+                            while (file_exists($ruta2 . $nombreDocumento2 . $a . '.' . $fileExtension2)) {
                                 $a++;
                             }
-                            $reg_Archivo2 = new Archivos;
+                            $reg_Archivo2 = new Archivos();
                             $reg_Archivo2->usuario = auth()->user()->username;
                             $reg_Archivo2->id_Paciente = $id;
                             $reg_Archivo2->ruta = $ruta2;
                             $reg_Archivo2->fecha_Guardado = Carbon::now();
-                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2 . $a . "." . $fileExtension2;
-                            $archivo2->move($ruta2, $nombreDocumento2 . $a . "." . $fileExtension2);
+                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2 . $a . '.' . $fileExtension2;
+                            $archivo2->move($ruta2, $nombreDocumento2 . $a . '.' . $fileExtension2);
                             $reg_Archivo2->save();
                         } else {
-                            $reg_Archivo2 = new Archivos;
+                            $reg_Archivo2 = new Archivos();
                             $reg_Archivo2->usuario = auth()->user()->username;
                             $reg_Archivo2->id_Paciente = $id;
                             $reg_Archivo2->ruta = $ruta2;
                             $reg_Archivo2->fecha_Guardado = Carbon::now();
-                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2  . "." . $fileExtension2;
-                            $archivo2->move($ruta2, $nombreDocumento2  . "." . $fileExtension2);
+                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2 . '.' . $fileExtension2;
+                            $archivo2->move($ruta2, $nombreDocumento2 . '.' . $fileExtension2);
                             $reg_Archivo2->save();
                         }
                         if (file_exists($rutaArchivo4)) {
                             $a = 1;
-                            while (file_exists($ruta4 . $nombreDocumento4 . $a . "." . $fileExtension4)) {
+                            while (file_exists($ruta4 . $nombreDocumento4 . $a . '.' . $fileExtension4)) {
                                 $a++;
                             }
-                            $reg_Archivo4 = new Archivos;
+                            $reg_Archivo4 = new Archivos();
                             $reg_Archivo4->usuario = auth()->user()->username;
                             $reg_Archivo4->id_Paciente = $id;
                             $reg_Archivo4->ruta = $ruta4;
                             $reg_Archivo4->fecha_Guardado = Carbon::now();
-                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4 . $a . "." . $fileExtension4;
-                            $archivo4->move($ruta4, $nombreDocumento4 . $a . "." . $fileExtension4);
+                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4 . $a . '.' . $fileExtension4;
+                            $archivo4->move($ruta4, $nombreDocumento4 . $a . '.' . $fileExtension4);
                             $reg_Archivo4->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                         } else {
-                            $reg_Archivo4 = new Archivos;
+                            $reg_Archivo4 = new Archivos();
                             $reg_Archivo4->usuario = auth()->user()->username;
                             $reg_Archivo4->id_Paciente = $id;
                             $reg_Archivo4->ruta = $ruta4;
                             $reg_Archivo4->fecha_Guardado = Carbon::now();
-                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4  . "." . $fileExtension4;
-                            $archivo4->move($ruta4, $nombreDocumento4  . "." . $fileExtension4);
+                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4 . '.' . $fileExtension4;
+                            $archivo4->move($ruta4, $nombreDocumento4 . '.' . $fileExtension4);
                             $reg_Archivo4->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                             // *******************************Fin Codigo funcional consecutivos*********************************************
                         }
                     } else {
                         if (file_exists($rutaArchivo1)) {
                             $a = 1;
-                            while (file_exists($ruta1 . $nombreDocumento1 . $a . "." . $fileExtension1)) {
+                            while (file_exists($ruta1 . $nombreDocumento1 . $a . '.' . $fileExtension1)) {
                                 $a++;
                             }
-                            $reg_Archivo1 = new Archivos;
+                            $reg_Archivo1 = new Archivos();
                             $reg_Archivo1->usuario = auth()->user()->username;
                             $reg_Archivo1->id_Paciente = $id;
                             $reg_Archivo1->ruta = $ruta1;
                             $reg_Archivo1->fecha_Guardado = Carbon::now();
-                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . $a . "." . $fileExtension1;
-                            $archivo1->move($ruta1, $nombreDocumento1 . $a . "." . $fileExtension1);
+                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . $a . '.' . $fileExtension1;
+                            $archivo1->move($ruta1, $nombreDocumento1 . $a . '.' . $fileExtension1);
                             $reg_Archivo1->save();
                         } else {
-                            $reg_Archivo1 = new Archivos;
+                            $reg_Archivo1 = new Archivos();
                             $reg_Archivo1->usuario = auth()->user()->username;
                             $reg_Archivo1->id_Paciente = $id;
                             $reg_Archivo1->ruta = $ruta1;
                             $reg_Archivo1->fecha_Guardado = Carbon::now();
-                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . "." . $fileExtension1;
-                            $archivo1->move($ruta1, $nombreDocumento1 . "." . $fileExtension1);
+                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . '.' . $fileExtension1;
+                            $archivo1->move($ruta1, $nombreDocumento1 . '.' . $fileExtension1);
                             $reg_Archivo1->save();
                         }
                         if (file_exists($rutaArchivo2)) {
                             $a = 1;
-                            while (file_exists($ruta2 . $nombreDocumento2 . $a . "." . $fileExtension2)) {
+                            while (file_exists($ruta2 . $nombreDocumento2 . $a . '.' . $fileExtension2)) {
                                 $a++;
                             }
-                            $reg_Archivo2 = new Archivos;
+                            $reg_Archivo2 = new Archivos();
                             $reg_Archivo2->usuario = auth()->user()->username;
                             $reg_Archivo2->id_Paciente = $id;
                             $reg_Archivo2->ruta = $ruta2;
                             $reg_Archivo2->fecha_Guardado = Carbon::now();
-                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2 . $a . "." . $fileExtension2;
-                            $archivo2->move($ruta2, $nombreDocumento2 . $a . "." . $fileExtension2);
+                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2 . $a . '.' . $fileExtension2;
+                            $archivo2->move($ruta2, $nombreDocumento2 . $a . '.' . $fileExtension2);
                             $reg_Archivo2->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                         } else {
-                            $reg_Archivo2 = new Archivos;
+                            $reg_Archivo2 = new Archivos();
                             $reg_Archivo2->usuario = auth()->user()->username;
                             $reg_Archivo2->id_Paciente = $id;
                             $reg_Archivo2->ruta = $ruta2;
                             $reg_Archivo2->fecha_Guardado = Carbon::now();
-                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2  . "." . $fileExtension2;
-                            $archivo2->move($ruta2, $nombreDocumento2  . "." . $fileExtension2);
+                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2 . '.' . $fileExtension2;
+                            $archivo2->move($ruta2, $nombreDocumento2 . '.' . $fileExtension2);
                             $reg_Archivo2->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                         }
                     }
                 }
@@ -715,129 +742,137 @@ class CarpetaController extends Controller
                         $archivo4 = $request->file('adjunto4');
                         if (file_exists($rutaArchivo1)) {
                             $a = 1;
-                            while (file_exists($ruta1 . $nombreDocumento1 . $a . "." . $fileExtension1)) {
+                            while (file_exists($ruta1 . $nombreDocumento1 . $a . '.' . $fileExtension1)) {
                                 $a++;
                             }
-                            $reg_Archivo1 = new Archivos;
+                            $reg_Archivo1 = new Archivos();
                             $reg_Archivo1->usuario = auth()->user()->username;
                             $reg_Archivo1->id_Paciente = $id;
                             $reg_Archivo1->ruta = $ruta1;
                             $reg_Archivo1->fecha_Guardado = Carbon::now();
-                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . $a . "." . $fileExtension1;
-                            $archivo1->move($ruta1, $nombreDocumento1 . $a . "." . $fileExtension1);
+                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . $a . '.' . $fileExtension1;
+                            $archivo1->move($ruta1, $nombreDocumento1 . $a . '.' . $fileExtension1);
                             $reg_Archivo1->save();
                         } else {
-                            $reg_Archivo1 = new Archivos;
+                            $reg_Archivo1 = new Archivos();
                             $reg_Archivo1->usuario = auth()->user()->username;
                             $reg_Archivo1->id_Paciente = $id;
                             $reg_Archivo1->ruta = $ruta1;
                             $reg_Archivo1->fecha_Guardado = Carbon::now();
-                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . "." . $fileExtension1;
-                            $archivo1->move($ruta1, $nombreDocumento1 . "." . $fileExtension1);
+                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . '.' . $fileExtension1;
+                            $archivo1->move($ruta1, $nombreDocumento1 . '.' . $fileExtension1);
                             $reg_Archivo1->save();
                         }
                         if (file_exists($rutaArchivo3)) {
                             $a = 1;
-                            while (file_exists($ruta3 . $nombreDocumento3 . $a . "." . $fileExtension3)) {
+                            while (file_exists($ruta3 . $nombreDocumento3 . $a . '.' . $fileExtension3)) {
                                 $a++;
                             }
-                            $reg_Archivo3 = new Archivos;
+                            $reg_Archivo3 = new Archivos();
                             $reg_Archivo3->usuario = auth()->user()->username;
                             $reg_Archivo3->id_Paciente = $id;
                             $reg_Archivo3->ruta = $ruta3;
                             $reg_Archivo3->fecha_Guardado = Carbon::now();
-                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . $a . "." . $fileExtension3;
-                            $archivo3->move($ruta3, $nombreDocumento3 . $a . "." . $fileExtension3);
+                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . $a . '.' . $fileExtension3;
+                            $archivo3->move($ruta3, $nombreDocumento3 . $a . '.' . $fileExtension3);
                             $reg_Archivo3->save();
                         } else {
-                            $reg_Archivo3 = new Archivos;
+                            $reg_Archivo3 = new Archivos();
                             $reg_Archivo3->usuario = auth()->user()->username;
                             $reg_Archivo3->id_Paciente = $id;
                             $reg_Archivo3->ruta = $ruta3;
                             $reg_Archivo3->fecha_Guardado = Carbon::now();
-                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . "." . $fileExtension3;
-                            $archivo3->move($ruta3, $nombreDocumento3  . "." . $fileExtension3);
+                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . '.' . $fileExtension3;
+                            $archivo3->move($ruta3, $nombreDocumento3 . '.' . $fileExtension3);
                             $reg_Archivo3->save();
                         }
                         if (file_exists($rutaArchivo4)) {
                             $a = 1;
-                            while (file_exists($ruta4 . $nombreDocumento4 . $a . "." . $fileExtension4)) {
+                            while (file_exists($ruta4 . $nombreDocumento4 . $a . '.' . $fileExtension4)) {
                                 # code...
                                 $a++;
                             }
-                            $reg_Archivo4 = new Archivos;
+                            $reg_Archivo4 = new Archivos();
                             $reg_Archivo4->usuario = auth()->user()->username;
                             $reg_Archivo4->id_Paciente = $id;
                             $reg_Archivo4->ruta = $ruta4;
                             $reg_Archivo4->fecha_Guardado = Carbon::now();
-                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4 . $a . "." . $fileExtension4;
-                            $archivo4->move($ruta4, $nombreDocumento4 . $a . "." . $fileExtension4);
+                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4 . $a . '.' . $fileExtension4;
+                            $archivo4->move($ruta4, $nombreDocumento4 . $a . '.' . $fileExtension4);
                             $reg_Archivo4->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                         } else {
-                            $reg_Archivo4 = new Archivos;
+                            $reg_Archivo4 = new Archivos();
                             $reg_Archivo4->usuario = auth()->user()->username;
                             $reg_Archivo4->id_Paciente = $id;
                             $reg_Archivo4->ruta = $ruta4;
                             $reg_Archivo4->fecha_Guardado = Carbon::now();
-                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4  . "." . $fileExtension4;
-                            $archivo4->move($ruta4, $nombreDocumento4  . "." . $fileExtension4);
+                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4 . '.' . $fileExtension4;
+                            $archivo4->move($ruta4, $nombreDocumento4 . '.' . $fileExtension4);
                             $reg_Archivo4->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                         }
                     } else {
                         $archivo3 = $request->file('adjunto3');
                         if (file_exists($rutaArchivo1)) {
                             $a = 1;
-                            while (file_exists($ruta1 . $nombreDocumento1 . $a . "." . $fileExtension1)) {
+                            while (file_exists($ruta1 . $nombreDocumento1 . $a . '.' . $fileExtension1)) {
                                 $a++;
                             }
-                            $reg_Archivo1 = new Archivos;
+                            $reg_Archivo1 = new Archivos();
                             $reg_Archivo1->usuario = auth()->user()->username;
                             $reg_Archivo1->id_Paciente = $id;
                             $reg_Archivo1->ruta = $ruta1;
                             $reg_Archivo1->fecha_Guardado = Carbon::now();
-                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . $a . "." . $fileExtension1;
-                            $archivo1->move($ruta1, $nombreDocumento1 . $a . "." . $fileExtension1);
+                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . $a . '.' . $fileExtension1;
+                            $archivo1->move($ruta1, $nombreDocumento1 . $a . '.' . $fileExtension1);
                             $reg_Archivo1->save();
                         } else {
-                            $reg_Archivo1 = new Archivos;
+                            $reg_Archivo1 = new Archivos();
                             $reg_Archivo1->usuario = auth()->user()->username;
                             $reg_Archivo1->id_Paciente = $id;
                             $reg_Archivo1->ruta = $ruta1;
                             $reg_Archivo1->fecha_Guardado = Carbon::now();
-                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . "." . $fileExtension1;
-                            $archivo1->move($ruta1, $nombreDocumento1 . "." . $fileExtension1);
+                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . '.' . $fileExtension1;
+                            $archivo1->move($ruta1, $nombreDocumento1 . '.' . $fileExtension1);
                             $reg_Archivo1->save();
                         }
                         if (file_exists($rutaArchivo3)) {
                             $a = 1;
-                            while (file_exists($ruta3 . $nombreDocumento3 . $a . "." . $fileExtension3)) {
+                            while (file_exists($ruta3 . $nombreDocumento3 . $a . '.' . $fileExtension3)) {
                                 $a++;
                             }
-                            $reg_Archivo3 = new Archivos;
+                            $reg_Archivo3 = new Archivos();
                             $reg_Archivo3->usuario = auth()->user()->username;
                             $reg_Archivo3->id_Paciente = $id;
                             $reg_Archivo3->ruta = $ruta3;
                             $reg_Archivo3->fecha_Guardado = Carbon::now();
-                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . $a . "." . $fileExtension3;
-                            $archivo3->move($ruta3, $nombreDocumento3 . $a . "." . $fileExtension3);
+                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . $a . '.' . $fileExtension3;
+                            $archivo3->move($ruta3, $nombreDocumento3 . $a . '.' . $fileExtension3);
                             $reg_Archivo3->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                         } else {
-                            $reg_Archivo3 = new Archivos;
+                            $reg_Archivo3 = new Archivos();
                             $reg_Archivo3->usuario = auth()->user()->username;
                             $reg_Archivo3->id_Paciente = $id;
                             $reg_Archivo3->ruta = $ruta3;
                             $reg_Archivo3->fecha_Guardado = Carbon::now();
-                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . "." . $fileExtension3;
-                            $archivo3->move($ruta3, $nombreDocumento3  . "." . $fileExtension3);
+                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . '.' . $fileExtension3;
+                            $archivo3->move($ruta3, $nombreDocumento3 . '.' . $fileExtension3);
                             $reg_Archivo3->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                         }
                     }
                 } else {
@@ -845,82 +880,90 @@ class CarpetaController extends Controller
                         $archivo4 = $request->file('adjunto4');
                         if (file_exists($rutaArchivo1)) {
                             $a = 1;
-                            while (file_exists($ruta1 . $nombreDocumento1 . $a . "." . $fileExtension1)) {
+                            while (file_exists($ruta1 . $nombreDocumento1 . $a . '.' . $fileExtension1)) {
                                 $a++;
                             }
-                            $reg_Archivo1 = new Archivos;
+                            $reg_Archivo1 = new Archivos();
                             $reg_Archivo1->usuario = auth()->user()->username;
                             $reg_Archivo1->id_Paciente = $id;
                             $reg_Archivo1->ruta = $ruta1;
                             $reg_Archivo1->fecha_Guardado = Carbon::now();
-                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . $a . "." . $fileExtension1;
-                            $archivo1->move($ruta1, $nombreDocumento1 . $a . "." . $fileExtension1);
+                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . $a . '.' . $fileExtension1;
+                            $archivo1->move($ruta1, $nombreDocumento1 . $a . '.' . $fileExtension1);
                             $reg_Archivo1->save();
                         } else {
-                            $reg_Archivo1 = new Archivos;
+                            $reg_Archivo1 = new Archivos();
                             $reg_Archivo1->usuario = auth()->user()->username;
                             $reg_Archivo1->id_Paciente = $id;
                             $reg_Archivo1->ruta = $ruta1;
                             $reg_Archivo1->fecha_Guardado = Carbon::now();
-                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . "." . $fileExtension1;
-                            $archivo1->move($ruta1, $nombreDocumento1 . "." . $fileExtension1);
+                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . '.' . $fileExtension1;
+                            $archivo1->move($ruta1, $nombreDocumento1 . '.' . $fileExtension1);
                             $reg_Archivo1->save();
                         }
                         if (file_exists($rutaArchivo4)) {
                             $a = 1;
-                            while (file_exists($ruta4 . $nombreDocumento4 . $a . "." . $fileExtension4)) {
+                            while (file_exists($ruta4 . $nombreDocumento4 . $a . '.' . $fileExtension4)) {
                                 $a++;
                             }
-                            $reg_Archivo4 = new Archivos;
+                            $reg_Archivo4 = new Archivos();
                             $reg_Archivo4->usuario = auth()->user()->username;
                             $reg_Archivo4->id_Paciente = $id;
                             $reg_Archivo4->ruta = $ruta4;
                             $reg_Archivo4->fecha_Guardado = Carbon::now();
-                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4 . $a . "." . $fileExtension4;
-                            $archivo4->move($ruta4, $nombreDocumento4 . $a . "." . $fileExtension4);
+                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4 . $a . '.' . $fileExtension4;
+                            $archivo4->move($ruta4, $nombreDocumento4 . $a . '.' . $fileExtension4);
                             $reg_Archivo4->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                         } else {
-                            $reg_Archivo4 = new Archivos;
+                            $reg_Archivo4 = new Archivos();
                             $reg_Archivo4->usuario = auth()->user()->username;
                             $reg_Archivo4->id_Paciente = $id;
                             $reg_Archivo4->ruta = $ruta4;
                             $reg_Archivo4->fecha_Guardado = Carbon::now();
-                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4  . "." . $fileExtension4;
-                            $archivo4->move($ruta4, $nombreDocumento4  . "." . $fileExtension4);
+                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4 . '.' . $fileExtension4;
+                            $archivo4->move($ruta4, $nombreDocumento4 . '.' . $fileExtension4);
                             $reg_Archivo4->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                             // *******************************Fin Codigo funcional consecutivos*********************************************
                         }
                     } else {
                         if (file_exists($rutaArchivo1)) {
                             $a = 1;
-                            while (file_exists($ruta1 . $nombreDocumento1 . $a . "." . $fileExtension1)) {
+                            while (file_exists($ruta1 . $nombreDocumento1 . $a . '.' . $fileExtension1)) {
                                 $a++;
                             }
-                            $reg_Archivo1 = new Archivos;
+                            $reg_Archivo1 = new Archivos();
                             $reg_Archivo1->usuario = auth()->user()->username;
                             $reg_Archivo1->id_Paciente = $id;
                             $reg_Archivo1->ruta = $ruta1;
                             $reg_Archivo1->fecha_Guardado = Carbon::now();
-                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . $a . "." . $fileExtension1;
-                            $archivo1->move($ruta1, $nombreDocumento1 . $a . "." . $fileExtension1);
+                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . $a . '.' . $fileExtension1;
+                            $archivo1->move($ruta1, $nombreDocumento1 . $a . '.' . $fileExtension1);
                             $reg_Archivo1->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                         } else {
-                            $reg_Archivo1 = new Archivos;
+                            $reg_Archivo1 = new Archivos();
                             $reg_Archivo1->usuario = auth()->user()->username;
                             $reg_Archivo1->id_Paciente = $id;
                             $reg_Archivo1->ruta = $ruta1;
                             $reg_Archivo1->fecha_Guardado = Carbon::now();
-                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . "." . $fileExtension1;
-                            $archivo1->move($ruta1, $nombreDocumento1 . "." . $fileExtension1);
+                            $reg_Archivo1->nombre_Archivo = $nombreDocumento1 . '.' . $fileExtension1;
+                            $archivo1->move($ruta1, $nombreDocumento1 . '.' . $fileExtension1);
                             $reg_Archivo1->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                         }
                     }
                 }
@@ -934,127 +977,135 @@ class CarpetaController extends Controller
                         $archivo4 = $request->file('adjunto4');
                         if (file_exists($rutaArchivo2)) {
                             $a = 1;
-                            while (file_exists($ruta2 . $nombreDocumento2 . $a . "." . $fileExtension2)) {
+                            while (file_exists($ruta2 . $nombreDocumento2 . $a . '.' . $fileExtension2)) {
                                 $a++;
                             }
-                            $reg_Archivo2 = new Archivos;
+                            $reg_Archivo2 = new Archivos();
                             $reg_Archivo2->usuario = auth()->user()->username;
                             $reg_Archivo2->id_Paciente = $id;
                             $reg_Archivo2->ruta = $ruta2;
                             $reg_Archivo2->fecha_Guardado = Carbon::now();
-                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2 . $a . "." . $fileExtension2;
-                            $archivo2->move($ruta2, $nombreDocumento2 . $a . "." . $fileExtension2);
+                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2 . $a . '.' . $fileExtension2;
+                            $archivo2->move($ruta2, $nombreDocumento2 . $a . '.' . $fileExtension2);
                             $reg_Archivo2->save();
                         } else {
-                            $reg_Archivo2 = new Archivos;
+                            $reg_Archivo2 = new Archivos();
                             $reg_Archivo2->usuario = auth()->user()->username;
                             $reg_Archivo2->id_Paciente = $id;
                             $reg_Archivo2->ruta = $ruta2;
                             $reg_Archivo2->fecha_Guardado = Carbon::now();
-                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2  . "." . $fileExtension2;
-                            $archivo2->move($ruta2, $nombreDocumento2  . "." . $fileExtension2);
+                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2 . '.' . $fileExtension2;
+                            $archivo2->move($ruta2, $nombreDocumento2 . '.' . $fileExtension2);
                             $reg_Archivo2->save();
                         }
                         if (file_exists($rutaArchivo3)) {
                             $a = 1;
-                            while (file_exists($ruta3 . $nombreDocumento3 . $a . "." . $fileExtension3)) {
+                            while (file_exists($ruta3 . $nombreDocumento3 . $a . '.' . $fileExtension3)) {
                                 $a++;
                             }
-                            $reg_Archivo3 = new Archivos;
+                            $reg_Archivo3 = new Archivos();
                             $reg_Archivo3->usuario = auth()->user()->username;
                             $reg_Archivo3->id_Paciente = $id;
                             $reg_Archivo3->ruta = $ruta3;
                             $reg_Archivo3->fecha_Guardado = Carbon::now();
-                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . $a . "." . $fileExtension3;
-                            $archivo3->move($ruta3, $nombreDocumento3 . $a . "." . $fileExtension3);
+                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . $a . '.' . $fileExtension3;
+                            $archivo3->move($ruta3, $nombreDocumento3 . $a . '.' . $fileExtension3);
                             $reg_Archivo3->save();
                         } else {
-                            $reg_Archivo3 = new Archivos;
+                            $reg_Archivo3 = new Archivos();
                             $reg_Archivo3->usuario = auth()->user()->username;
                             $reg_Archivo3->id_Paciente = $id;
                             $reg_Archivo3->ruta = $ruta3;
                             $reg_Archivo3->fecha_Guardado = Carbon::now();
-                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . "." . $fileExtension3;
-                            $archivo3->move($ruta3, $nombreDocumento3  . "." . $fileExtension3);
+                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . '.' . $fileExtension3;
+                            $archivo3->move($ruta3, $nombreDocumento3 . '.' . $fileExtension3);
                             $reg_Archivo3->save();
                         }
                         if (file_exists($rutaArchivo4)) {
                             $a = 1;
-                            while (file_exists($ruta4 . $nombreDocumento4 . $a . "." . $fileExtension4)) {
+                            while (file_exists($ruta4 . $nombreDocumento4 . $a . '.' . $fileExtension4)) {
                                 $a++;
                             }
-                            $reg_Archivo4 = new Archivos;
+                            $reg_Archivo4 = new Archivos();
                             $reg_Archivo4->usuario = auth()->user()->username;
                             $reg_Archivo4->id_Paciente = $id;
                             $reg_Archivo4->ruta = $ruta4;
                             $reg_Archivo4->fecha_Guardado = Carbon::now();
-                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4 . $a . "." . $fileExtension4;
-                            $archivo4->move($ruta4, $nombreDocumento4 . $a . "." . $fileExtension4);
+                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4 . $a . '.' . $fileExtension4;
+                            $archivo4->move($ruta4, $nombreDocumento4 . $a . '.' . $fileExtension4);
                             $reg_Archivo4->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                         } else {
-                            $reg_Archivo4 = new Archivos;
+                            $reg_Archivo4 = new Archivos();
                             $reg_Archivo4->usuario = auth()->user()->username;
                             $reg_Archivo4->id_Paciente = $id;
                             $reg_Archivo4->ruta = $ruta4;
                             $reg_Archivo4->fecha_Guardado = Carbon::now();
-                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4  . "." . $fileExtension4;
-                            $archivo4->move($ruta4, $nombreDocumento4  . "." . $fileExtension4);
+                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4 . '.' . $fileExtension4;
+                            $archivo4->move($ruta4, $nombreDocumento4 . '.' . $fileExtension4);
                             $reg_Archivo4->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                         }
                     } else {
                         if (file_exists($rutaArchivo2)) {
                             $a = 1;
-                            while (file_exists($ruta2 . $nombreDocumento2 . $a . "." . $fileExtension2)) {
+                            while (file_exists($ruta2 . $nombreDocumento2 . $a . '.' . $fileExtension2)) {
                                 $a++;
                             }
-                            $reg_Archivo2 = new Archivos;
+                            $reg_Archivo2 = new Archivos();
                             $reg_Archivo2->usuario = auth()->user()->username;
                             $reg_Archivo2->id_Paciente = $id;
                             $reg_Archivo2->ruta = $ruta2;
                             $reg_Archivo2->fecha_Guardado = Carbon::now();
-                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2 . $a . "." . $fileExtension2;
-                            $archivo2->move($ruta2, $nombreDocumento2 . $a . "." . $fileExtension2);
+                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2 . $a . '.' . $fileExtension2;
+                            $archivo2->move($ruta2, $nombreDocumento2 . $a . '.' . $fileExtension2);
                             $reg_Archivo2->save();
                         } else {
-                            $reg_Archivo2 = new Archivos;
+                            $reg_Archivo2 = new Archivos();
                             $reg_Archivo2->usuario = auth()->user()->username;
                             $reg_Archivo2->id_Paciente = $id;
                             $reg_Archivo2->ruta = $ruta2;
                             $reg_Archivo2->fecha_Guardado = Carbon::now();
-                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2  . "." . $fileExtension2;
-                            $archivo2->move($ruta2, $nombreDocumento2  . "." . $fileExtension2);
+                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2 . '.' . $fileExtension2;
+                            $archivo2->move($ruta2, $nombreDocumento2 . '.' . $fileExtension2);
                             $reg_Archivo2->save();
                         }
                         if (file_exists($rutaArchivo3)) {
                             $a = 1;
-                            while (file_exists($ruta3 . $nombreDocumento3 . $a . "." . $fileExtension3)) {
+                            while (file_exists($ruta3 . $nombreDocumento3 . $a . '.' . $fileExtension3)) {
                                 $a++;
                             }
-                            $reg_Archivo3 = new Archivos;
+                            $reg_Archivo3 = new Archivos();
                             $reg_Archivo3->usuario = auth()->user()->username;
                             $reg_Archivo3->id_Paciente = $id;
                             $reg_Archivo3->ruta = $ruta3;
                             $reg_Archivo3->fecha_Guardado = Carbon::now();
-                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . $a . "." . $fileExtension3;
-                            $archivo3->move($ruta3, $nombreDocumento3 . $a . "." . $fileExtension3);
+                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . $a . '.' . $fileExtension3;
+                            $archivo3->move($ruta3, $nombreDocumento3 . $a . '.' . $fileExtension3);
                             $reg_Archivo3->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                         } else {
-                            $reg_Archivo3 = new Archivos;
+                            $reg_Archivo3 = new Archivos();
                             $reg_Archivo3->usuario = auth()->user()->username;
                             $reg_Archivo3->id_Paciente = $id;
                             $reg_Archivo3->ruta = $ruta3;
                             $reg_Archivo3->fecha_Guardado = Carbon::now();
-                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . "." . $fileExtension3;
-                            $archivo3->move($ruta3, $nombreDocumento3  . "." . $fileExtension3);
+                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . '.' . $fileExtension3;
+                            $archivo3->move($ruta3, $nombreDocumento3 . '.' . $fileExtension3);
                             $reg_Archivo3->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                         }
                     }
                 } else {
@@ -1062,81 +1113,89 @@ class CarpetaController extends Controller
                         $archivo4 = $request->file('adjunto4');
                         if (file_exists($rutaArchivo2)) {
                             $a = 1;
-                            while (file_exists($ruta2 . $nombreDocumento2 . $a . "." . $fileExtension2)) {
+                            while (file_exists($ruta2 . $nombreDocumento2 . $a . '.' . $fileExtension2)) {
                                 $a++;
                             }
-                            $reg_Archivo2 = new Archivos;
+                            $reg_Archivo2 = new Archivos();
                             $reg_Archivo2->usuario = auth()->user()->username;
                             $reg_Archivo2->id_Paciente = $id;
                             $reg_Archivo2->ruta = $ruta2;
                             $reg_Archivo2->fecha_Guardado = Carbon::now();
-                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2 . $a . "." . $fileExtension2;
-                            $archivo2->move($ruta2, $nombreDocumento2 . $a . "." . $fileExtension2);
+                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2 . $a . '.' . $fileExtension2;
+                            $archivo2->move($ruta2, $nombreDocumento2 . $a . '.' . $fileExtension2);
                             $reg_Archivo2->save();
                         } else {
-                            $reg_Archivo2 = new Archivos;
+                            $reg_Archivo2 = new Archivos();
                             $reg_Archivo2->usuario = auth()->user()->username;
                             $reg_Archivo2->id_Paciente = $id;
                             $reg_Archivo2->ruta = $ruta2;
                             $reg_Archivo2->fecha_Guardado = Carbon::now();
-                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2  . "." . $fileExtension2;
-                            $archivo2->move($ruta2, $nombreDocumento2  . "." . $fileExtension2);
+                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2 . '.' . $fileExtension2;
+                            $archivo2->move($ruta2, $nombreDocumento2 . '.' . $fileExtension2);
                             $reg_Archivo2->save();
                         }
                         if (file_exists($rutaArchivo4)) {
                             $a = 1;
-                            while (file_exists($ruta4 . $nombreDocumento4 . $a . "." . $fileExtension4)) {
+                            while (file_exists($ruta4 . $nombreDocumento4 . $a . '.' . $fileExtension4)) {
                                 $a++;
                             }
-                            $reg_Archivo4 = new Archivos;
+                            $reg_Archivo4 = new Archivos();
                             $reg_Archivo4->usuario = auth()->user()->username;
                             $reg_Archivo4->id_Paciente = $id;
                             $reg_Archivo4->ruta = $ruta4;
                             $reg_Archivo4->fecha_Guardado = Carbon::now();
-                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4 . $a . "." . $fileExtension4;
-                            $archivo4->move($ruta4, $nombreDocumento4 . $a . "." . $fileExtension4);
+                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4 . $a . '.' . $fileExtension4;
+                            $archivo4->move($ruta4, $nombreDocumento4 . $a . '.' . $fileExtension4);
                             $reg_Archivo4->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                         } else {
-                            $reg_Archivo4 = new Archivos;
+                            $reg_Archivo4 = new Archivos();
                             $reg_Archivo4->usuario = auth()->user()->username;
                             $reg_Archivo4->id_Paciente = $id;
                             $reg_Archivo4->ruta = $ruta4;
                             $reg_Archivo4->fecha_Guardado = Carbon::now();
-                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4  . "." . $fileExtension4;
-                            $archivo4->move($ruta4, $nombreDocumento4  . "." . $fileExtension4);
+                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4 . '.' . $fileExtension4;
+                            $archivo4->move($ruta4, $nombreDocumento4 . '.' . $fileExtension4);
                             $reg_Archivo4->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                         }
                     } else {
                         if (file_exists($rutaArchivo2)) {
                             $a = 1;
-                            while (file_exists($ruta2 . $nombreDocumento2 . $a . "." . $fileExtension2)) {
+                            while (file_exists($ruta2 . $nombreDocumento2 . $a . '.' . $fileExtension2)) {
                                 $a++;
                             }
-                            $reg_Archivo2 = new Archivos;
+                            $reg_Archivo2 = new Archivos();
                             $reg_Archivo2->usuario = auth()->user()->username;
                             $reg_Archivo2->id_Paciente = $id;
                             $reg_Archivo2->ruta = $ruta2;
                             $reg_Archivo2->fecha_Guardado = Carbon::now();
-                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2 . $a . "." . $fileExtension2;
-                            $archivo2->move($ruta2, $nombreDocumento2 . $a . "." . $fileExtension2);
+                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2 . $a . '.' . $fileExtension2;
+                            $archivo2->move($ruta2, $nombreDocumento2 . $a . '.' . $fileExtension2);
                             $reg_Archivo2->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                         } else {
-                            $reg_Archivo2 = new Archivos;
+                            $reg_Archivo2 = new Archivos();
                             $reg_Archivo2->usuario = auth()->user()->username;
                             $reg_Archivo2->id_Paciente = $id;
                             $reg_Archivo2->ruta = $ruta2;
                             $reg_Archivo2->fecha_Guardado = Carbon::now();
-                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2  . "." . $fileExtension2;
-                            $archivo2->move($ruta2, $nombreDocumento2  . "." . $fileExtension2);
+                            $reg_Archivo2->nombre_Archivo = $nombreDocumento2 . '.' . $fileExtension2;
+                            $archivo2->move($ruta2, $nombreDocumento2 . '.' . $fileExtension2);
                             $reg_Archivo2->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                         }
                     }
                 }
@@ -1147,82 +1206,90 @@ class CarpetaController extends Controller
                         $archivo4 = $request->file('adjunto4');
                         if (file_exists($rutaArchivo3)) {
                             $a = 1;
-                            while (file_exists($ruta3 . $nombreDocumento3 . $a . "." . $fileExtension3)) {
+                            while (file_exists($ruta3 . $nombreDocumento3 . $a . '.' . $fileExtension3)) {
                                 $a++;
                             }
-                            $reg_Archivo3 = new Archivos;
+                            $reg_Archivo3 = new Archivos();
                             $reg_Archivo3->usuario = auth()->user()->username;
                             $reg_Archivo3->id_Paciente = $id;
                             $reg_Archivo3->ruta = $ruta3;
                             $reg_Archivo3->fecha_Guardado = Carbon::now();
-                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . $a . "." . $fileExtension3;
-                            $archivo3->move($ruta3, $nombreDocumento3 . $a . "." . $fileExtension3);
+                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . $a . '.' . $fileExtension3;
+                            $archivo3->move($ruta3, $nombreDocumento3 . $a . '.' . $fileExtension3);
                             $reg_Archivo3->save();
                         } else {
-                            $reg_Archivo3 = new Archivos;
+                            $reg_Archivo3 = new Archivos();
                             $reg_Archivo3->usuario = auth()->user()->username;
                             $reg_Archivo3->id_Paciente = $id;
                             $reg_Archivo3->ruta = $ruta3;
                             $reg_Archivo3->fecha_Guardado = Carbon::now();
-                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . "." . $fileExtension3;
-                            $archivo3->move($ruta3, $nombreDocumento3  . "." . $fileExtension3);
+                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . '.' . $fileExtension3;
+                            $archivo3->move($ruta3, $nombreDocumento3 . '.' . $fileExtension3);
                             $reg_Archivo3->save();
                         }
                         if (file_exists($rutaArchivo4)) {
                             $a = 1;
-                            while (file_exists($ruta4 . $nombreDocumento4 . $a . "." . $fileExtension4)) {
+                            while (file_exists($ruta4 . $nombreDocumento4 . $a . '.' . $fileExtension4)) {
                                 $a++;
                             }
-                            $reg_Archivo4 = new Archivos;
+                            $reg_Archivo4 = new Archivos();
                             $reg_Archivo4->usuario = auth()->user()->username;
                             $reg_Archivo4->id_Paciente = $id;
                             $reg_Archivo4->ruta = $ruta4;
                             $reg_Archivo4->fecha_Guardado = Carbon::now();
-                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4 . $a . "." . $fileExtension4;
-                            $archivo4->move($ruta4, $nombreDocumento4 . $a . "." . $fileExtension4);
+                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4 . $a . '.' . $fileExtension4;
+                            $archivo4->move($ruta4, $nombreDocumento4 . $a . '.' . $fileExtension4);
                             $reg_Archivo4->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                         } else {
-                            $reg_Archivo4 = new Archivos;
+                            $reg_Archivo4 = new Archivos();
                             $reg_Archivo4->usuario = auth()->user()->username;
                             $reg_Archivo4->id_Paciente = $id;
                             $reg_Archivo4->ruta = $ruta4;
                             $reg_Archivo4->fecha_Guardado = Carbon::now();
-                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4  . "." . $fileExtension4;
-                            $archivo4->move($ruta4, $nombreDocumento4  . "." . $fileExtension4);
+                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4 . '.' . $fileExtension4;
+                            $archivo4->move($ruta4, $nombreDocumento4 . '.' . $fileExtension4);
                             $reg_Archivo4->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                         }
                     } else {
                         $archivo3 = $request->file('adjunto3');
                         if (file_exists($rutaArchivo3)) {
                             $a = 1;
-                            while (file_exists($ruta3 . $nombreDocumento3 . $a . "." . $fileExtension3)) {
+                            while (file_exists($ruta3 . $nombreDocumento3 . $a . '.' . $fileExtension3)) {
                                 $a++;
                             }
-                            $reg_Archivo3 = new Archivos;
+                            $reg_Archivo3 = new Archivos();
                             $reg_Archivo3->usuario = auth()->user()->username;
                             $reg_Archivo3->id_Paciente = $id;
                             $reg_Archivo3->ruta = $ruta3;
                             $reg_Archivo3->fecha_Guardado = Carbon::now();
-                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . $a . "." . $fileExtension3;
-                            $archivo3->move($ruta3, $nombreDocumento3 . $a . "." . $fileExtension3);
+                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . $a . '.' . $fileExtension3;
+                            $archivo3->move($ruta3, $nombreDocumento3 . $a . '.' . $fileExtension3);
                             $reg_Archivo3->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                         } else {
-                            $reg_Archivo3 = new Archivos;
+                            $reg_Archivo3 = new Archivos();
                             $reg_Archivo3->usuario = auth()->user()->username;
                             $reg_Archivo3->id_Paciente = $id;
                             $reg_Archivo3->ruta = $ruta3;
                             $reg_Archivo3->fecha_Guardado = Carbon::now();
-                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . "." . $fileExtension3;
-                            $archivo3->move($ruta3, $nombreDocumento3  . "." . $fileExtension3);
+                            $reg_Archivo3->nombre_Archivo = $nombreDocumento3 . '.' . $fileExtension3;
+                            $archivo3->move($ruta3, $nombreDocumento3 . '.' . $fileExtension3);
                             $reg_Archivo3->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                         }
                     }
                 } else {
@@ -1231,34 +1298,40 @@ class CarpetaController extends Controller
 
                         if (file_exists($rutaArchivo4)) {
                             $a = 1;
-                            while (file_exists($ruta4 . $nombreDocumento4 . $a . "." . $fileExtension4)) {
+                            while (file_exists($ruta4 . $nombreDocumento4 . $a . '.' . $fileExtension4)) {
                                 $a++;
                             }
-                            $reg_Archivo4 = new Archivos;
+                            $reg_Archivo4 = new Archivos();
                             $reg_Archivo4->usuario = auth()->user()->username;
                             $reg_Archivo4->id_Paciente = $id;
                             $reg_Archivo4->ruta = $ruta4;
                             $reg_Archivo4->fecha_Guardado = Carbon::now();
-                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4 . $a . "." . $fileExtension4;
-                            $archivo4->move($ruta4, $nombreDocumento4 . $a . "." . $fileExtension4);
+                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4 . $a . '.' . $fileExtension4;
+                            $archivo4->move($ruta4, $nombreDocumento4 . $a . '.' . $fileExtension4);
                             $reg_Archivo4->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                         } else {
-                            $reg_Archivo4 = new Archivos;
+                            $reg_Archivo4 = new Archivos();
                             $reg_Archivo4->usuario = auth()->user()->username;
                             $reg_Archivo4->id_Paciente = $id;
                             $reg_Archivo4->ruta = $ruta4;
                             $reg_Archivo4->fecha_Guardado = Carbon::now();
-                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4  . "." . $fileExtension4;
-                            $archivo4->move($ruta4, $nombreDocumento4  . "." . $fileExtension4);
+                            $reg_Archivo4->nombre_Archivo = $nombreDocumento4 . '.' . $fileExtension4;
+                            $archivo4->move($ruta4, $nombreDocumento4 . '.' . $fileExtension4);
                             $reg_Archivo4->save();
                             $carpetas = Carpetas::get();
-                            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+                            return redirect()
+                                ->route('carpetas.edit', $id)
+                                ->with('success', 'Documentos Adjuntados Correctamente');
                         }
                     } else {
                         //Queda en la ventana
-                        return redirect()->route('carpetas.edit', $id)->with('adjuntar', 'Debes adjuntar Algo');
+                        return redirect()
+                            ->route('carpetas.edit', $id)
+                            ->with('adjuntar', 'Debes adjuntar Algo');
                     }
                 }
             }
@@ -1301,51 +1374,53 @@ class CarpetaController extends Controller
         $id = $request->id;
         $factura = $request->factura;
         $ruta = $request->ruta;
-        
 
         //dd($tabla);
         //$pdf = new PdfMerge();
-        if (file_exists('C:' . $ruta . '\\' . $factura . ".pdf")) {
+        if (file_exists('C:' . $ruta . '\\' . $factura . '.pdf')) {
             $a = 1;
-            while (file_exists('C:' . $ruta . '\\' . $factura . $a . ".pdf")) {
+            while (file_exists('C:' . $ruta . '\\' . $factura . $a . '.pdf')) {
                 $a++;
             }
             $pdf = new PdfMerge();
             foreach ($nombresListado as $key => $file) {
                 $pdf->add($file);
             }
-            $pdf->merge('C:' . $ruta  . '\\' . $factura . $a . '.pdf');
-            $reg_Archivo = new Archivos;
+            $pdf->merge('C:' . $ruta . '\\' . $factura . $a . '.pdf');
+            $reg_Archivo = new Archivos();
             $reg_Archivo->usuario = auth()->user()->username;
             $reg_Archivo->id_Paciente = $id;
             $reg_Archivo->ruta = 'C:' . $ruta . '\\';
             $reg_Archivo->fecha_Guardado = Carbon::now();
-            $reg_Archivo->nombre_Archivo = $factura . $a . ".pdf";
+            $reg_Archivo->nombre_Archivo = $factura . $a . '.pdf';
             $reg_Archivo->save();
-            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+            return redirect()
+                ->route('carpetas.edit', $id)
+                ->with('success', 'Documentos Adjuntados Correctamente');
         } else {
             $pdf = new PdfMerge();
             foreach ($nombresListado as $key => $file) {
                 $pdf->add($file);
             }
-            $pdf->merge('C:' . $ruta  . '\\' . $factura . '.pdf');
+            $pdf->merge('C:' . $ruta . '\\' . $factura . '.pdf');
 
-            $reg_Archivo = new Archivos;
+            $reg_Archivo = new Archivos();
             $reg_Archivo->usuario = auth()->user()->username;
             $reg_Archivo->id_Paciente = $id;
             $reg_Archivo->ruta = 'C:' . $ruta . '\\';
             $reg_Archivo->fecha_Guardado = Carbon::now();
-            $reg_Archivo->nombre_Archivo = $factura . ".pdf";
+            $reg_Archivo->nombre_Archivo = $factura . '.pdf';
             $reg_Archivo->save();
-            return redirect()->route('carpetas.edit', $id)->with('success', 'Documentos Adjuntados Correctamente');
+            return redirect()
+                ->route('carpetas.edit', $id)
+                ->with('success', 'Documentos Adjuntados Correctamente');
         }
     }
 
     public function rips()
     {
-        dd("Se ha accedido a la vista rips");
+        dd('Se ha accedido a la vista rips');
     }
-
 
     //******************************************************************* */
     //*************Eliminar Registro Del Archivo************************* */
@@ -1371,6 +1446,143 @@ class CarpetaController extends Controller
         // $user->delete();
         // return back()->with('succes', 'Usuario eliminado correctamente');
 
-        return redirect()->route('carpetas.edit', $idPaciente)->with('destroy', 'Documento Eliminado Correctamente');
+        return redirect()
+            ->route('carpetas.edit', $idPaciente)
+            ->with('destroy', 'Documento Eliminado Correctamente');
     }
+
+    //******************************************************************* */
+    //********Verificar si usuario existe en DB o crearlo**************** */
+    //******************************************************************* */
+    public function crearCorte(Request $request, Carpetas $carpeta)
+    {
+        $tipoId = trim($request->get('TipoIdentificacion'));
+        $numeroId = trim($request->get('NumeroIdentificacion'));
+        $eps = trim($request->get('Eps'));
+        $diaIngresoCarpeta = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $request->get('Fecha'))->toDateString();
+        $id = trim($request->get('id'));
+
+        $consecutivo = 1;
+        $rutaBase = public_path("Archivos/{$diaIngresoCarpeta}/{$eps}/{$tipoId}{$numeroId}/Corte");
+
+        do {
+            $ruta = $rutaBase . $consecutivo;
+            $consecutivo++;
+        } while (File::isDirectory($ruta));
+
+        // Ahora $ruta contiene la primera carpeta disponible (Corte1, Corte2, etc.)
+        // Puedes crear la carpeta usando makeDirectory
+        File::makeDirectory($ruta, 0777, true, true);
+
+        return redirect()
+            ->route('carpetas.edit', $id)
+            ->with('success', 'Carpeta Creada Correctamente');
+    }
+
+    public function obtenerCarpetasCortes(Request $request)
+    {
+        // dd($request->input('rutaArchivo'));
+        $rutaArchivos = $request->input('rutaArchivo');
+
+        $archivos = Archivos::where('id', $rutaArchivos)->firstOrFail();
+        $rutaCarpetas = $archivos->ruta;
+        // // Normalizar la ruta
+        // $rutaCarpetas = str_replace('\\', '/', $rutaCarpetas);
+
+        if (is_dir($rutaCarpetas)) {
+            // Escanear la ruta y obtener la lista de carpetas
+            $carpetas = array_filter(scandir($rutaCarpetas), function ($item) use ($rutaCarpetas) {
+                return is_dir($rutaCarpetas . $item) && $item != '.' && $item != '..';
+            });
+
+            return response()->json(['carpetas' => $carpetas, 'rutaCarpetas' => $rutaCarpetas, 'rutaArchivos' => $rutaArchivos]);
+        } else {
+            echo "La ruta '{$rutaCarpetas}' no existe.";
+        }
+    }
+
+    public function moverArchivoCortes(Request $request)
+    {
+        // Obtener el archivo desde la base de datos
+        $archivos = Archivos::where('id', $request->input('idArchivo'))->firstOrFail();
+        $nombreArchivo = $archivos->nombre_Archivo;
+
+        // Obtener la carpeta de destino y la ruta
+        $carpetaDestino = $request->input('carpetaDestino');
+        $rutaCarpetaDestino = $request->input('rutaCarpetaDestino');
+
+        // Construir la ruta completa del destino
+        $rutaDestino = "$rutaCarpetaDestino$carpetaDestino\\";
+
+        // Verificar si la carpeta de destino existe, si no, crearla
+        if (!is_dir($rutaDestino)) {
+            File::makeDirectory($rutaDestino, 0777, true, true);
+        }
+
+        // Construir las rutas completas del archivo actual y del destino
+        $rutaArchivoCompleto = $rutaCarpetaDestino . $nombreArchivo;
+        $rutaCompletaDestino = $rutaDestino . $nombreArchivo;
+
+        // Mover el archivo
+        if (rename($rutaArchivoCompleto, $rutaCompletaDestino)) {
+            // Actualizar la base de datos con la nueva ruta
+            $archivos->update(['ruta' => $rutaDestino]);
+
+            return redirect()
+                ->back()
+                ->with('success', 'Archivo movido exitosamente.');
+        } else {
+            return redirect()
+                ->back()
+                ->with('error', 'Error al intentar mover el archivo.');
+        }
+    }
+
+    public function obtenerContenidoCarpeta(Request $request)
+    {
+        // Obtener la carpeta de destino y la ruta
+        $carpetaDestino = $request->input('carpeta');
+        $idPaciente = $request->input('rutaArchivo');
+
+        $archivos = Archivos::where('id_Paciente', 'like', $idPaciente)
+            ->where('ruta', 'NOT LIKE', '%corte%') // Excluir registros con la palabra 'corte' en el campo 'ruta'
+            ->firstOrFail();
+
+        $rutaCarpeta = $archivos->ruta;
+
+        // Verificar si la carpeta existe
+        if (is_dir($rutaCarpeta . $carpetaDestino)) {
+            // Obtener la lista de subcarpetas y archivos en la carpeta
+            $contenido = array_diff(scandir($rutaCarpeta . $carpetaDestino), ['.', '..']);
+
+            // Devolver el contenido como respuesta JSON
+            return response()->json(['contenido' => $contenido, 'rutaCarpeta' => $rutaCarpeta,'idPaciente' => $idPaciente]);
+        } else {
+            // Carpeta no encontrada, puedes manejar esto según tus necesidades
+            return response()->json(['error' => 'Carpeta no encontrada'], 404);
+        }
+    }
+
+    public function descargarFacturaCortes(Request $request)
+    {
+        try {
+            $idPaciente = $request->input('idPaciente');
+            $nombreArchivo = $request->input('nombreArchivo');
+    
+            // Busca el archivo por id_Paciente y nombre_Archivo
+            $archivo = Archivos::where('id_Paciente', $idPaciente)
+                ->where('nombre_Archivo', $nombreArchivo)
+                ->firstOrFail();
+    
+            $pathToFile = $archivo->ruta . $archivo->nombre_Archivo;
+    
+            // Retorna la respuesta de descarga
+            return response()->download($pathToFile);
+        } catch (\Exception $e) {
+            // Manejo de la excepción
+            return back()->withError('No se pudo descargar el archivo. Error: ' . $e->getMessage());
+        }
+    }
+    
+    
 }
