@@ -51,6 +51,11 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post("/unirPdf", [App\Http\Controllers\CarpetaController::class, "unirPdf"])->name('carpetas.unirPdf');
     Route::resource('pedidos', App\Http\Controllers\PedidosController::class);
     Route::get('/laboratorio/create', [App\Http\Controllers\UserController::class, 'create'])->name('laboratorio.create');
+    Route::post("/crearCorte", [App\Http\Controllers\CarpetaController::class, "crearCorte"])->name('carpetas.crearCorte');
+    Route::get('/descargarFacturaCortes', [App\Http\Controllers\CarpetaController::class, 'descargarFacturaCortes'])->name('descargarFacturaCortes');
+    Route::get('/obtenerCarpetasCortes',  [App\Http\Controllers\CarpetaController::class, 'obtenerCarpetasCortes'])->name('obtenerCarpetasCortes');
+    Route::get('/moverArchivoCortes',  [App\Http\Controllers\CarpetaController::class, 'moverArchivoCortes'])->name('moverArchivoCortes');
+    Route::get('/obtenerContenidoCarpeta',  [App\Http\Controllers\CarpetaController::class, 'obtenerContenidoCarpeta'])->name('obtenerContenidoCarpeta');
 
     Route::get('/test', [App\Http\Controllers\TestController::class, 'test']);
     Route::get('/test2', [App\Http\Controllers\TestController::class, 'test2']);

@@ -294,14 +294,27 @@ class CarpetaController extends Controller
             $ruta2 = "$diaIngresoCarpeta\\$eps\\$tipoId$numeroId";
             $rutaArchivoSin = null;
     
+            // Construir la ruta completa a la carpeta principal
+            $rutaCarpetas = public_path("Archivos\\{$diaIngresoCarpeta}\\{$eps}\\{$tipoId}{$numeroId}\\");
+
+            // Verificar si la ruta existe
+            if (is_dir($rutaCarpetas)) {
+                // Escanear la ruta y obtener la lista de carpetas
+                $carpetas = array_filter(scandir($rutaCarpetas), function ($item) use ($rutaCarpetas) {
+                    return is_dir($rutaCarpetas . $item) && $item != '.' && $item != '..';
+                });
+            } else {
+                echo "La ruta '{$rutaCarpetas}' no existe.";
+            }
             //$archivos = Archivos::get();
     
-            $archivos = Archivos::where("id_Paciente", "like",  $id)
+            $archivos = Archivos::where('id_Paciente', 'like', $id)
+                ->where('ruta', 'NOT LIKE', '%corte%') // Excluir registros con la palabra 'corte' en el campo 'ruta'
                 ->orderBy('nombre_Archivo', 'ASC')
                 ->paginate(100);
-    
+                
             // dd($carpeta);
-            return view('facturacion.carpetas.edit', compact('ruta2', 'carpeta', 'ruta', 'archivos', 'rutaArchivoSin'));
+            return view('facturacion.carpetas.edit', compact('ruta2', 'carpeta', 'carpetas', 'ruta', 'archivos', 'rutaArchivoSin'));
         } catch (\Exception $e) {
             // Manejar la excepción aquí
             return view('facturacion.error', ['error' => $e->getMessage()]);
@@ -1373,4 +1386,137 @@ class CarpetaController extends Controller
 
         return redirect()->route('carpetas.edit', $idPaciente)->with('destroy', 'Documento Eliminado Correctamente');
     }
+
+    //******************************************************************* */
+    //********crear carpeta Corte**************** */
+    //******************************************************************* */
+    public function crearCorte(Request $request, Carpetas $carpeta)
+    {
+        $tipoId = trim($request->get('TipoIdentificacion'));
+        $numeroId = trim($request->get('NumeroIdentificacion'));
+        $eps = trim($request->get('Eps'));
+        $diaIngresoCarpeta = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $request->get('Fecha'))->toDateString();
+        $id = trim($request->get('id'));
+
+        $consecutivo = 1;
+        $rutaBase = public_path("Archivos/{$diaIngresoCarpeta}/{$eps}/{$tipoId}{$numeroId}/Corte");
+
+        do {
+            $ruta = $rutaBase . $consecutivo;
+            $consecutivo++;
+        } while (File::isDirectory($ruta));
+
+        // Ahora $ruta contiene la primera carpeta disponible (Corte1, Corte2, etc.)
+        // Puedes crear la carpeta usando makeDirectory
+        File::makeDirectory($ruta, 0777, true, true);
+
+        return redirect()
+            ->route('carpetas.edit', $id)
+            ->with('success', 'Carpeta Creada Correctamente');
+    }
+
+    public function obtenerCarpetasCortes(Request $request)
+    {
+        // dd($request->input('rutaArchivo'));
+        $rutaArchivos = $request->input('rutaArchivo');
+
+        $archivos = Archivos::where('id', $rutaArchivos)->firstOrFail();
+        $rutaCarpetas = $archivos->ruta;
+        // // Normalizar la ruta
+        // $rutaCarpetas = str_replace('\\', '/', $rutaCarpetas);
+
+        if (is_dir($rutaCarpetas)) {
+            // Escanear la ruta y obtener la lista de carpetas
+            $carpetas = array_filter(scandir($rutaCarpetas), function ($item) use ($rutaCarpetas) {
+                return is_dir($rutaCarpetas . $item) && $item != '.' && $item != '..';
+            });
+
+            return response()->json(['carpetas' => $carpetas, 'rutaCarpetas' => $rutaCarpetas, 'rutaArchivos' => $rutaArchivos]);
+        } else {
+            echo "La ruta '{$rutaCarpetas}' no existe.";
+        }
+    }
+
+    public function moverArchivoCortes(Request $request)
+    {
+        // Obtener el archivo desde la base de datos
+        $archivos = Archivos::where('id', $request->input('idArchivo'))->firstOrFail();
+        $nombreArchivo = $archivos->nombre_Archivo;
+
+        // Obtener la carpeta de destino y la ruta
+        $carpetaDestino = $request->input('carpetaDestino');
+        $rutaCarpetaDestino = $request->input('rutaCarpetaDestino');
+
+        // Construir la ruta completa del destino
+        $rutaDestino = "$rutaCarpetaDestino$carpetaDestino\\";
+
+        // Verificar si la carpeta de destino existe, si no, crearla
+        if (!is_dir($rutaDestino)) {
+            File::makeDirectory($rutaDestino, 0777, true, true);
+        }
+
+        // Construir las rutas completas del archivo actual y del destino
+        $rutaArchivoCompleto = $rutaCarpetaDestino . $nombreArchivo;
+        $rutaCompletaDestino = $rutaDestino . $nombreArchivo;
+
+        // Mover el archivo
+        if (rename($rutaArchivoCompleto, $rutaCompletaDestino)) {
+            // Actualizar la base de datos con la nueva ruta
+            $archivos->update(['ruta' => $rutaDestino]);
+
+            return redirect()
+                ->back()
+                ->with('success', 'Archivo movido exitosamente.');
+        } else {
+            return redirect()
+                ->back()
+                ->with('error', 'Error al intentar mover el archivo.');
+        }
+    }
+
+    public function obtenerContenidoCarpeta(Request $request)
+    {
+        // Obtener la carpeta de destino y la ruta
+        $carpetaDestino = $request->input('carpeta');
+        $idPaciente = $request->input('rutaArchivo');
+
+        $archivos = Archivos::where('id_Paciente', 'like', $idPaciente)
+            ->where('ruta', 'NOT LIKE', '%corte%') // Excluir registros con la palabra 'corte' en el campo 'ruta'
+            ->firstOrFail();
+
+        $rutaCarpeta = $archivos->ruta;
+
+        // Verificar si la carpeta existe
+        if (is_dir($rutaCarpeta . $carpetaDestino)) {
+            // Obtener la lista de subcarpetas y archivos en la carpeta
+            $contenido = array_diff(scandir($rutaCarpeta . $carpetaDestino), ['.', '..']);
+
+            // Devolver el contenido como respuesta JSON
+            return response()->json(['contenido' => $contenido, 'rutaCarpeta' => $rutaCarpeta,'idPaciente' => $idPaciente]);
+        } else {
+            // Carpeta no encontrada, puedes manejar esto según tus necesidades
+            return response()->json(['error' => 'Carpeta no encontrada'], 404);
+        }
+    }
+
+    public function descargarFacturaCortes(Request $request)
+    {
+        try {
+            $idPaciente = $request->input('idPaciente');
+            $nombreArchivo = $request->input('nombreArchivo');
+    
+            // Busca el archivo por id_Paciente y nombre_Archivo
+            $archivo = Archivos::where('id_Paciente', $idPaciente)
+                ->where('nombre_Archivo', $nombreArchivo)
+                ->firstOrFail();
+    
+            $pathToFile = $archivo->ruta . $archivo->nombre_Archivo;
+    
+            // Retorna la respuesta de descarga
+            return response()->download($pathToFile);
+        } catch (\Exception $e) {
+            // Manejo de la excepción
+            return back()->withError('No se pudo descargar el archivo. Error: ' . $e->getMessage());
+        }
+    } 
 }

@@ -222,6 +222,9 @@ $CscId = trim($carpeta->IngCsc); @endphp value="{{ $CscId ?? 'None' }}"
                                                 @can('facturacion_nombreDocumento_admisiones')
                                                     <option value="PLANEACION RADIOTERAPIA">PLANEACION RADIOTERAPIA</option>
                                                 @endcan
+                                                @can('facturacion_nombreDocumento_facturacion')
+                                                    <option value="RADICADO DE FACTURA">RADICADO DE FACTURA</option>
+                                                @endcan
                                                 @can('facturacion_nombreDocumento_ambulatorio')
                                                     <option value="RECORD DE ANESTESIA">RECORD DE ANESTESIA</option>
                                                 @endcan
@@ -367,6 +370,9 @@ $CscId = trim($carpeta->IngCsc); @endphp value="{{ $CscId ?? 'None' }}"
                                                 @can('facturacion_nombreDocumento_admisiones')
                                                     <option value="PLANEACION RADIOTERAPIA">PLANEACION RADIOTERAPIA</option>
                                                 @endcan
+                                                @can('facturacion_nombreDocumento_facturacion')
+                                                    <option value="RADICADO DE FACTURA">RADICADO DE FACTURA</option>
+                                                @endcan
                                                 @can('facturacion_nombreDocumento_ambulatorio')
                                                     <option value="RECORD DE ANESTESIA">RECORD DE ANESTESIA</option>
                                                 @endcan
@@ -405,7 +411,6 @@ $CscId = trim($carpeta->IngCsc); @endphp value="{{ $CscId ?? 'None' }}"
                                         </div>
                                     </div>
                                     <br>
-
 
                                     <div class="d-flex justify-content-around">
                                         <div>
@@ -516,6 +521,9 @@ $CscId = trim($carpeta->IngCsc); @endphp value="{{ $CscId ?? 'None' }}"
                                                 @endcan
                                                 @can('facturacion_nombreDocumento_admisiones')
                                                     <option value="PLANEACION RADIOTERAPIA">PLANEACION RADIOTERAPIA</option>
+                                                @endcan
+                                                @can('facturacion_nombreDocumento_facturacion')
+                                                    <option value="RADICADO DE FACTURA">RADICADO DE FACTURA</option>
                                                 @endcan
                                                 @can('facturacion_nombreDocumento_ambulatorio')
                                                     <option value="RECORD DE ANESTESIA">RECORD DE ANESTESIA</option>
@@ -663,6 +671,9 @@ $CscId = trim($carpeta->IngCsc); @endphp value="{{ $CscId ?? 'None' }}"
                                                 @can('facturacion_nombreDocumento_admisiones')
                                                     <option value="PLANEACION RADIOTERAPIA">PLANEACION RADIOTERAPIA</option>
                                                 @endcan
+                                                @can('facturacion_nombreDocumento_facturacion')
+                                                    <option value="RADICADO DE FACTURA">RADICADO DE FACTURA</option>
+                                                @endcan
                                                 @can('facturacion_nombreDocumento_ambulatorio')
                                                     <option value="RECORD DE ANESTESIA">RECORD DE ANESTESIA</option>
                                                 @endcan
@@ -707,6 +718,90 @@ $CscId = trim($carpeta->IngCsc); @endphp value="{{ $CscId ?? 'None' }}"
                                     </div>
                                 @endcan
                             </form>
+
+                            <form action="{{ route('carpetas.crearCorte') }}" method="POST"
+                                enctype="multipart/form-data" id="formularioCrearCorte">
+                                <div class="form-row">
+                                    <input type="hidden" class="form-control" name="id"
+                                        @php $id=trim($carpeta->id); @endphp value="{{ $id ?? 'None' }}"
+                                        placeholder="{{ $id ?? 'None' }}" readonly>
+
+                                    <div class="form-group col-md-2">
+
+                                        <input type="hidden" class="form-control" name="TipoIdentificacion"
+                                            @php
+$tipoIdentificacion=trim($carpeta->MPTDoc); @endphp
+                                            value="{{ $tipoIdentificacion ?? 'None' }}"
+                                            placeholder="{{ $tipoIdentificacion ?? 'None' }}" readonly>
+                                    </div>
+
+                                    <div class="form-group col-md-2">
+
+                                        <input type="hidden" class="form-control" name="NumeroIdentificacion"
+                                            @php
+$numeroIdentificacion=trim($carpeta->MPCEDU); @endphp
+                                            value="{{ $numeroIdentificacion ?? 'None' }}"
+                                            placeholder="{{ $numeroIdentificacion ?? 'None' }}" readonly>
+                                    </div>
+
+                                    <div class="form-group col-md-4">
+
+                                        <input type="hidden" class="form-control" name="Nombre"
+                                            @php
+$nombre=trim($carpeta->MPNOMC); @endphp value="{{ $nombre ?? 'None' }}"
+                                            placeholder="{{ $carpeta->MPNOMC ?? 'None' }}" readonly>
+                                    </div>
+
+                                    <div class="form-group col-md-2">
+
+                                        <input type="hidden" class="form-control" name="Fecha"
+                                            @php
+$fechaAdmision=\Carbon\Carbon::createFromFormat('Y-m-d H:i:s',
+                                        $carpeta->IngFecAdm); @endphp
+                                            value="{{ $fechaAdmision }}" readonly>
+                                    </div>
+
+                                    <div class="form-group col-md-2">
+
+                                        <input type="hidden" class="form-control" name="NumeroFactura"
+                                            @php
+$factura=trim($carpeta->IngFac); @endphp
+                                            value="{{ $factura ?? 'None' }}"
+                                            placeholder="{{ $carpeta->IngFac ?? 'None' }}" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col-md-2">
+
+                                        <input type="hidden" class="form-control" name="ContratoId"
+                                            @php
+$contratoID=trim($carpeta->MENNIT); @endphp
+                                            value="{{ $contratoID ?? 'None' }}" placeholder="{{ $carpeta->MENNIT }}"
+                                            readonly>
+                                    </div>
+
+                                    <div class="form-group col-md-8">
+
+                                        <input type="hidden" class="form-control" name="Eps"
+                                            @php $eps=trim($carpeta->MENOMB); @endphp value="{{ $eps ?? 'None' }}"
+                                            placeholder="{{ $eps ?? 'None' }}" readonly>
+                                    </div>
+
+                                    <div class="form-group col-md-2">
+
+                                        <input type="hidden" class="form-control" name="ConsecutivoId"
+                                            @php
+$CscId=trim($carpeta->IngCsc); @endphp value="{{ $CscId ?? 'None' }}"
+                                            placeholder="{{ $CscId ?? 'None' }}" readonly>
+                                    </div>
+                                </div>
+                                @can('facturacion_coordinacion')
+                                    <div class="d-flex justify-content-center">
+                                        @csrf
+                                        <input type="submit" value="Crear Corte" class="btn btn-lg btn-success">
+                                    </div>
+                                @endcan
+                            </form>
                         </div>
                     </div>
 
@@ -737,6 +832,14 @@ $CscId = trim($carpeta->IngCsc); @endphp value="{{ $CscId ?? 'None' }}"
                                                         <a href="{{ route('carpetas.descargarFactura', $archivo) }}"
                                                             class="btn btn-success"><i
                                                                 class="material-icons">visibility</i>Descargar</a>
+                                                    @endcan
+
+                                                    @can('facturacion_coordinacion')
+                                                        <a href="#" class="btn btn-info" data-toggle="modal"
+                                                            data-target="#seleccionarCarpetaModal"
+                                                            onclick="cargarCarpetas('{{ $archivo->id }}')">
+                                                            <i class="material-icons">visibility</i>Mover
+                                                        </a>
                                                     @endcan
 
                                                     <form action="{{ route('destroyArchivo.delete', $archivo->id) }}"
@@ -780,6 +883,7 @@ $rutaArchivo = trim($archivo->ruta);
 
                         </div>
                     </div>
+
                     @can('facturacion_alistamiento')
                         <div class="card">
                             <div class="card-header card-header-primary">
@@ -821,6 +925,108 @@ $rutaArchivo = trim($archivo->ruta);
                             </div>
                         </div>
                     @endcan
+
+                    @can('facturacion_coordinacion')
+                        <div class="card">
+                            <div class="card-header card-header-primary">
+                                Cortes
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table display compact" id="listadoCarpetasArchivos" style="width:100%">
+                                        <thead class="text-primary">
+                                            <th>Nombre Carpeta</th>
+                                            <th class="text-right">Acciones</th>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($carpetas as $carpeta)
+                                                <tr>
+                                                    <td>{{ $carpeta }}</td>
+                                                    <td class="td-actions text-right">
+                                                        @can('facturacion_digitalizacion')
+                                                            <a href="#" class="btn btn-info" data-toggle="modal"
+                                                                data-target="#verContenidoModal"
+                                                                onclick="cargarArchivosCarpetas('{{ request()->segment(2) }}','{{ $carpeta }}')">
+                                                                <i class="material-icons">visibility</i>Ver Contenido Carpeta
+                                                            </a>
+                                                        @endcan
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    @endcan
+
+                </div>
+            </div>
+        </div>
+    </div>
+        <!-- Agrega esto a tu vista Blade para el modal -->
+        <form action="{{ route('moverArchivoCortes') }}" method="GET" id="moverArchivosForm">
+        @csrf
+        <!-- ... tu código para el campo de selección y el botón Mover ... -->
+        <!-- Modal para seleccionar la carpeta de destino -->
+        <div class="modal fade" id="seleccionarCarpetaModal" tabindex="-1" role="dialog"
+            aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Seleccionar Carpeta de Destino</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Aquí se cargarán dinámicamente las carpetas disponibles -->
+                        <label for="carpetaDestino">Selecciona la Carpeta de Destino:</label>
+                        <select name="carpetaDestino" id="carpetaDestino" class="form-control">
+                            <!-- Las carpetas se cargarán aquí mediante JavaScript -->
+                        </select>
+                        <input type="hidden" name="rutaCarpetaDestino" id="rutaCarpetaDestino">
+                        <input type="hidden" name="idArchivo" id="idArchivo">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Mover Archivos</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Modal para ver contenido de la carpeta -->
+    <div class="modal fade" id="verContenidoModal" tabindex="-1" role="dialog"
+        aria-labelledby="verContenidoModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="verContenidoModalLabel">Contenido de la Carpeta</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="contenidoCarpeta">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Archivo</th>
+                                    <th class="text-right">Acciones</th>
+                                    <!-- Puedes agregar más columnas según tus necesidades -->
+                                </tr>
+                            </thead>
+                            <tbody id="contenidoCarpetaTabla">
+                                <!-- Aquí se agregarán las filas de la tabla dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="rutaCarpeta"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
@@ -942,6 +1148,109 @@ $rutaArchivo = trim($archivo->ruta);
         }
     });
 </script>
+
+<script>
+        // Función para cargar las carpetas disponibles
+        function cargarCarpetas(rutaArchivo) {
+            console.log(rutaArchivo);
+
+            // Llamada AJAX para obtener las carpetas disponibles
+            $.ajax({
+                url: '{{ route('obtenerCarpetasCortes') }}',
+                type: 'GET',
+                data: {
+                    rutaArchivo: rutaArchivo
+                },
+                success: function(data) {
+                    console.log("la respuesta", data);
+
+                    // Verificar si data.carpetas es un objeto y convertirlo a un arreglo
+                    var carpetasArray = Array.isArray(data.carpetas) ?
+                        data.carpetas :
+                        Object.values(data.carpetas);
+
+                    var archivosArray = Array.isArray(data.rutaCarpetas) ?
+                        data.rutaCarpetas :
+                        Object.values(data.rutaCarpetas);
+
+                    // Establecer valores en los campos de formulario
+                    $('#rutaCarpetaDestino').val(data.rutaCarpetas);
+                    $('#idArchivo').val(data.rutaArchivos);
+
+                    // Limpiar el contenido actual del select
+                    $('#carpetaDestino').empty();
+
+                    // Agregar las opciones al select
+                    $.each(carpetasArray, function(index, carpeta) {
+                        var archivo = archivosArray[index];
+                        // Asignar un valor único basado en la posición del elemento en el array
+                        $('#carpetaDestino').append('<option value="' + carpeta + '">' + carpeta +
+                            '</option>');
+                    });
+                },
+                error: function(error) {
+                    console.error('Error al cargar las carpetas:', error);
+                }
+            });
+        }
+    </script>
+
+    <script>
+        function cargarArchivosCarpetas(rutaArchivo, carpeta) {
+            $.ajax({
+                url: '{{ route('obtenerContenidoCarpeta') }}',
+                type: 'GET',
+                data: {
+                    rutaArchivo: rutaArchivo,
+                    carpeta: carpeta
+                },
+                success: function(data) {
+                    console.log(data.idPaciente);
+                    var contenidoLista = $('#contenidoCarpetaTabla');
+                    contenidoLista.empty();
+
+                    $.each(data.contenido, function(index, elemento) {
+                        // Eliminar C:/laragon/www/clinicamc/public/ de data.rutaCarpeta si está presente
+                        var rutaCarpetaSinInicio = data.rutaCarpeta.replace(/^.*public\//, '');
+
+                        var rutaCompleta = data.rutaCarpeta + carpeta + '/' + elemento;
+                        // Construir la fila de la tabla
+                        var filaHTML = '<tr>';
+                        filaHTML += '<td>' + elemento +
+                            '</td>';
+                        filaHTML += '<td class="text-right">';
+
+                        // Agrega el botón de descarga para cada archivo
+                        filaHTML += '<button class="btn btn-success" onclick = "descargarArchivo(\'' +
+                            elemento + '\', \'' + data.idPaciente + '\')" > Descargar </button>';
+
+                        filaHTML += '</td>';
+                        filaHTML += '</tr>';
+                        // Agregar la fila a la tabla
+                        $('#contenidoCarpetaTabla').append(filaHTML);
+                    });
+
+                    // Abrir el modal
+                    $('#verContenidoModal').modal('show');
+                },
+                error: function(error) {
+                    console.error('Error al cargar los archivos de la carpeta:', error);
+                }
+            });
+        }
+    </script>
+
+    <script>
+        function descargarArchivo(nombreArchivo, idPaciente) {
+            // Construir la URL de descarga
+            var urlDescarga = '{{ route('descargarFacturaCortes') }}' +
+                '?nombreArchivo=' + encodeURIComponent(nombreArchivo) +
+                '&idPaciente=' + encodeURIComponent(idPaciente);
+
+            // Cambiar la ubicación del navegador para iniciar la descarga
+            window.location.href = urlDescarga;
+        }
+    </script>
 
 @if (session('adjuntar') == 'Debes adjuntar Algo')
 <script>
